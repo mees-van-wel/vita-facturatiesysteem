@@ -7,5 +7,61 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  name      String
+  email     String    @unique
+  password  String
+  role      String
+  expenses  Expense[]
+}
+
+model Company {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  first     String
+  expenses  Expense[]
+}
+
+model State {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  expense   Expense  @relation(fields: [expenseId], references: [id])
+  expenseId Int
+  type      String
+}
+
+model Expense {
+  id                     Int       @id @default(autoincrement())
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @default(now()) @updatedAt
+  States                 State[]
+  invoiceDate            DateTime?
+  handler                User      @relation(fields: [handlerId], references: [id])
+  handlerId              Int
+  customerName           String
+  invoiceAdres           String
+  postalCode             String
+  city                   String
+  passingDate            DateTime
+  notaryName             String
+  company                Company   @relation(fields: [companyId], references: [id])
+  companyId              Int
+  objectAdres            String
+  objectPostalCode       String
+  objectCity             String
+  mortgageInvoiceAmount  Decimal
+  insuranceInvoiceAmount Decimal
+  otherInvoiceAmount     Decimal
+  signedOTDV             String
+  zzpInvoice             String?
+  paymentMethod          String
+  notes                  String?
+  IBDeclaration          String
 }
