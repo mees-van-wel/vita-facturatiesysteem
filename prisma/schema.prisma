@@ -25,7 +25,7 @@ model Company {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
-  first     String
+  name      String
   expenses  Expense[]
 }
 
@@ -42,7 +42,6 @@ model Expense {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @default(now()) @updatedAt
   States                 State[]
-  invoiceDate            DateTime?
   handler                User      @relation(fields: [handlerId], references: [id])
   handlerId              Int
   customerName           String

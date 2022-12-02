@@ -9,10 +9,9 @@ import {
   useMantineTheme,
   Anchor,
   Title,
-  Button,
   NavLink,
-  TextInput,
-  PasswordInput,
+  Badge,
+  Group,
 } from "@mantine/core";
 import Image from "next/image";
 import Logo from "../../assets/images/vh-verticaal-master-png.png";
@@ -20,10 +19,7 @@ import { IconHome, IconReportMoney, IconLogout } from "@tabler/icons";
 import Link from "next/link";
 import { Route } from "../../enums/route.enum";
 import { useRouter } from "next/router";
-import { signIn, signOut, useSession } from "next-auth/react";
-import { useForm } from "@mantine/form";
-import { showNotification } from "@mantine/notifications";
-
+import { signOut, useSession } from "next-auth/react";
 interface MainLayoutProps {
   children: ReactNode;
 }
@@ -95,7 +91,12 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       header={
         <Header height={{ base: 50, md: 70 }}>
           <div
-            style={{ display: "flex", alignItems: "center", height: "100%" }}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              height: "100%",
+            }}
           >
             <MediaQuery largerThan="sm" styles={{ display: "none" }}>
               <Burger
@@ -106,20 +107,33 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 mr="xl"
               />
             </MediaQuery>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: 8,
-                margin: 8,
-                backgroundColor: "white",
-                borderRadius: 100,
-              }}
-            >
-              <Image src={Logo} width={30} alt="Logo" />
-            </div>
-            <Title>Facturatiesysteem</Title>
+            <Group>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: 8,
+                  margin: 8,
+                  backgroundColor: "white",
+                  borderRadius: 100,
+                }}
+              >
+                <Image src={Logo} width={30} alt="Logo" />
+              </div>
+              <Title m={0}>Facturatiesysteem</Title>
+            </Group>
+            {session && (
+              <Group mr="md" spacing="xs">
+                <p>Ingelogd als:</p>
+                <Badge size="lg">
+                  {session.user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join(".")}
+                </Badge>
+              </Group>
+            )}
           </div>
         </Header>
       }

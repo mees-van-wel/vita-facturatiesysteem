@@ -1,10 +1,9 @@
 import { Anchor, Button, PasswordInput, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import { ReactElement, useEffect } from "react";
-import { Route } from "../../enums/route.enum";
+import { signIn } from "next-auth/react";
+import { ReactElement } from "react";
+import { NextPageWithLayout } from "../../../pages/_app";
 import { MainLayout } from "../../layouts/Main";
 
 interface FormValues {
@@ -12,13 +11,7 @@ interface FormValues {
   password: string;
 }
 
-export const Login = () => {
-  const router = useRouter();
-
-  // useEffect(() => {
-  //   if (!!session.data) router.replace(Route.Home);
-  // }, []);
-
+export const Login: NextPageWithLayout = () => {
   const form = useForm<FormValues>({
     initialValues: {
       email: "",
