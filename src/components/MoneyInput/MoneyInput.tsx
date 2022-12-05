@@ -1,8 +1,10 @@
 import { NumberInput } from "@mantine/core";
+import { IconCurrencyEuro } from "@tabler/icons";
 import { ReactNode } from "react";
-import globals from "../../../styles/globals.module.scss";
 
 interface MoneyInputProps {
+  readOnly?: boolean;
+  required?: boolean;
   value: number;
   onChange: (value: number) => void;
   error?: ReactNode;
@@ -10,16 +12,26 @@ interface MoneyInputProps {
   label?: string;
 }
 
-export const MoneyInput = ({ value, onChange, error, label, disabled }: MoneyInputProps) => {
+export const MoneyInput = ({
+  readOnly,
+  required,
+  value,
+  onChange,
+  error,
+  label,
+  disabled,
+}: MoneyInputProps) => {
   return (
     <NumberInput
+      withAsterisk={required}
+      icon={<IconCurrencyEuro size={16} />}
+      readOnly={readOnly}
       min={0}
       hideControls
       precision={2}
       decimalSeparator=","
       disabled={disabled}
       label={label}
-      classNames={{ input: globals.inputTest }}
       value={value}
       onChange={onChange}
       error={error}

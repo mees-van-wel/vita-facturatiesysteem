@@ -1,11 +1,22 @@
 import { QueryFunctionContext } from "@tanstack/react-query";
 import axios from "axios";
-import { Route } from "../enums/route.enum";
 
-export const query = <T>(route: Route, params: Record<string, any>) => ({
-  queryKey: [route, ...Object.values(params)],
-  queryFn: async (context: QueryFunctionContext<string[], any>) =>
-    await (
-      await axios.post<T>(route, params)
-    ).data,
-});
+interface QueryParams {
+  route: string;
+  method: string;
+  params?: Record<string, any>;
+}
+
+export const query = <T>({ route, method, params }: QueryParams) => {
+  const queryKey = [route];
+
+  if (params) queryKey.push(...Object.values(params));
+
+  return {
+    queryKey,
+    queryFn: async (context: QueryFunctionContext<string[], any>) =>
+      await (
+        await axios<T>(route, { method, data: params })
+      ).data,
+  };
+};

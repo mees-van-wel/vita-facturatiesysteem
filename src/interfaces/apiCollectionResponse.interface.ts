@@ -3,7 +3,7 @@ export interface ApiCollectionRequest {
   take: number;
 }
 
-export interface ApiCollectionResponse {
+export interface ApiCollectionResponse<T = any> {
   count: number;
-  collection: any[];
+  collection: T[];
 }

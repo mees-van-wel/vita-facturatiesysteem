@@ -12,16 +12,22 @@ const tableHeaders: TableHeaders = [
     filterType: FilterType.Number,
   },
   {
-    key: "submitted",
+    key: "createdAt",
     label: "Ingediend",
+    format: (date) => new Date(date).toLocaleString("nl-NL"),
+    filterType: FilterType.Date,
   },
   {
-    key: "billed",
+    key: "completedAt",
     label: "Gefactureerd",
+    format: (date) =>
+      date ? new Date(date).toLocaleString("nl-NL") : "Nog niet",
+    filterType: FilterType.Date,
   },
   {
     key: "handler.name",
     label: "Behandelaar",
+    filterType: FilterType.String,
   },
   {
     key: "customerName",
@@ -29,7 +35,7 @@ const tableHeaders: TableHeaders = [
     filterType: FilterType.String,
   },
   {
-    key: "objectAdres",
+    key: "objectAddress",
     label: "Adres object",
     filterType: FilterType.String,
   },
@@ -41,11 +47,13 @@ const tableHeaders: TableHeaders = [
   {
     key: "passingDate",
     label: "Passeerdatum",
-    format: (date) => new Date(date).toLocaleString("nl-NL"),
+    format: (date) => new Date(date).toLocaleDateString("nl-NL"),
+    filterType: FilterType.Date,
   },
   {
     key: "company.name",
     label: "Maatschappij",
+    filterType: FilterType.String,
   },
   {
     key: "mortgageInvoiceAmount",
@@ -55,6 +63,7 @@ const tableHeaders: TableHeaders = [
         style: "currency",
         currency: "EUR",
       }).format(number),
+    filterType: FilterType.Decimal,
   },
   {
     key: "insuranceInvoiceAmount",
@@ -64,6 +73,7 @@ const tableHeaders: TableHeaders = [
         style: "currency",
         currency: "EUR",
       }).format(number),
+    filterType: FilterType.Decimal,
   },
   {
     key: "otherInvoiceAmount",
@@ -73,6 +83,7 @@ const tableHeaders: TableHeaders = [
         style: "currency",
         currency: "EUR",
       }).format(number),
+    filterType: FilterType.Decimal,
   },
 ];
 
@@ -81,7 +92,8 @@ export const Expenses: NextPageWithLayout = () => {
     <div>
       <Table
         title="Verzoeken"
-        route={Route.ApiExpenses}
+        route={Route.Expenses}
+        dataRoute={Route.ApiExpenses}
         headers={tableHeaders}
       />
     </div>

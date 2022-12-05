@@ -5,7 +5,7 @@ export enum TableCount {
   Hunderd = "100",
 }
 
-const enumToArray = (value: any) =>
+export const enumToArray = (value: any) =>
   Object.keys(value).map((key) => ({
     key: key as string,
     value: value[key],

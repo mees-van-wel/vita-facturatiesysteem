@@ -1,7 +1,7 @@
 import { NextApiResponse, NextApiRequest } from "next";
 import { unstable_getServerSession } from "next-auth";
-import { prisma } from "../../src/lib/prisma.lib";
-import { authOptions } from "./auth/[...nextauth]";
+import { prisma } from "../../../src/lib/prisma.lib";
+import { authOptions } from "./../auth/[...nextauth]";
 
 export default async function handler(
   req: NextApiRequest,
@@ -36,7 +36,6 @@ export default async function handler(
         handler: { select: { name: true } },
         company: { select: { name: true } },
       },
-      // where,
       where,
       orderBy: Object.keys(sort).map((key) => {
         const value = sort[key];

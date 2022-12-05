@@ -5,7 +5,6 @@ import {
   Text,
   Table as TableComponent,
   ScrollArea,
-  Aside,
   Loader,
   Title,
   Button,
@@ -20,8 +19,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Route } from "../../enums/route.enum";
 import { query } from "../../lib/query.lib";
 import { ApiCollectionResponse } from "../../interfaces/apiCollectionResponse.interface";
-import { IconEye, IconEyeOff, IconFileExport, IconPlus } from "@tabler/icons";
-import { FilterType } from "../../enums/filterType.enum";
+import {
+  IconSortAscending,
+  IconSortDescending,
+  IconArrowsSort,
+  IconFileExport,
+  IconPlus,
+  IconAdjustments,
+  IconAdjustmentsOff,
+} from "@tabler/icons";
+import { FilterExtraType, FilterType } from "../../enums/filterType.enum";
+import { DatePicker, DateRangePicker } from "@mantine/dates";
+import { useRouter } from "next/router";
+import { utils, writeFile } from "xlsx";
+import Link from "next/link";
 
 export interface TableHeader {
   key: string;
@@ -34,96 +45,216 @@ export type TableHeaders = TableHeader[];
 
 interface TableProps {
   title: string;
+  dataRoute: Route;
   route: Route;
   headers: TableHeaders;
 }
 
 type Filter = Record<string, Record<string, any>>;
 
-const Table = ({ title, route, headers }: TableProps) => {
+enum SortOption {
+  Ascending = "asc",
+  Descending = "desc",
+}
+
+type Sort = Record<string, SortOption>;
+
+const Table = ({ title, route, dataRoute, headers }: TableProps) => {
   const [showFilter, setShowFilter] = useState(false);
-
   const [filter, setFilter] = useDebouncedState<Filter>({}, 250);
+  const [sort, setSort] = useState<Sort>({});
 
-  const filterHandler =
-    (key: string) => (filterKey: string, value: Record<string, any>) => {
-      const clone = { ...filter };
-      if (!value) delete clone[key];
-      else clone[key] = { [filterKey]: value };
-      setFilter(clone);
-    };
+  const filterHandler = (key: string) => (value: Record<string, any>) => {
+    const clone = { ...filter };
+
+    const hasValue =
+      value &&
+      Object.values(value).length &&
+      Object.values(value).every((value) => !!value);
+    if (!hasValue) delete clone[key];
+    else clone[key] = value;
+
+    setFilter(clone);
+  };
+
+  const sortHandler = (key: string) => {
+    const current = sort[key];
+    const clone = { ...sort };
+
+    if (!current) clone[key] = SortOption.Ascending;
+    if (current === SortOption.Ascending) clone[key] = SortOption.Descending;
+    if (current === SortOption.Descending) delete clone[key];
+
+    setSort(clone);
+  };
 
   return (
     <div>
       <Group mb="md">
         <Title>{title}</Title>
-        <Button leftIcon={<IconPlus />}>Nieuw</Button>
+        <Link href={`${Route.Expenses}/new`}>
+          <Button leftIcon={<IconPlus />}>Nieuw</Button>
+        </Link>
         <Button
-          leftIcon={showFilter ? <IconEyeOff /> : <IconEye />}
+          leftIcon={showFilter ? <IconAdjustmentsOff /> : <IconAdjustments />}
           onClick={() => {
             setShowFilter(!showFilter);
           }}
         >
-          Filters {showFilter ? "verbergen" : "tonen"}
+          Verfijning {showFilter ? "verbergen" : "tonen"}
         </Button>
-        <Button leftIcon={<IconFileExport />}>Exporteren</Button>
       </Group>
-      <DataTable route={route} headers={headers} filter={filter} />
-      {showFilter && (
-        <Aside p="md" hiddenBreakpoint="sm" width={{ sm: 200, lg: 300 }}>
+      <DataTable
+        title={title}
+        route={route}
+        dataRoute={dataRoute}
+        headers={headers}
+        filter={filter}
+        sort={sort}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          top: 64,
+          bottom: 0,
+          transition: "transform 250ms",
+          transform: !showFilter ? "translateX(400px)" : undefined,
+          right: 0,
+          backgroundColor: "#1A1B1E",
+          padding: 16,
+          width: 400,
+        }}
+      >
+        <ScrollArea
+          offsetScrollbars
+          style={{
+            height: "calc(100% - 60px)",
+          }}
+        >
           {headers.map(
             (tableHeader) =>
               tableHeader.filterType && (
-                <FilterInput
-                  tableHeader={tableHeader}
-                  onChange={filterHandler}
-                />
+                <Group key={tableHeader.key} align={"end"}>
+                  <FilterInput
+                    tableHeader={tableHeader}
+                    onChange={filterHandler}
+                  />
+                  <Button
+                    variant={sort[tableHeader.key] ? "filled" : "light"}
+                    onClick={() => sortHandler(tableHeader.key)}
+                  >
+                    {sort[tableHeader.key] ? (
+                      sort[tableHeader.key] === SortOption.Ascending ? (
+                        <IconSortAscending size={16} />
+                      ) : (
+                        <IconSortDescending size={16} />
+                      )
+                    ) : (
+                      <IconArrowsSort size={16} />
+                    )}
+                  </Button>
+                </Group>
               )
           )}
-        </Aside>
-      )}
+        </ScrollArea>
+      </div>
     </div>
   );
 };
 
 interface DataTableProps {
+  title: string;
   route: Route;
+  dataRoute: Route;
   headers: TableHeaders;
-  filter: Record<string, any>;
+  filter: Filter;
+  sort: Sort;
 }
 
-const DataTable = ({ route, headers, filter }: DataTableProps) => {
+const DataTable = ({
+  title,
+  route,
+  dataRoute,
+  headers,
+  filter,
+  sort,
+}: DataTableProps) => {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [take, setTake] = useState(TableCount.Fifty);
   const { error, data } = useQuery(
-    query<ApiCollectionResponse>(route, {
-      page,
-      take: parseInt(take),
-      filter,
+    query<ApiCollectionResponse>({
+      route: dataRoute,
+      method: "POST",
+      params: {
+        page,
+        take: parseInt(take),
+        filter,
+        sort,
+      },
     })
   );
 
   const filtering = useMemo(() => !!Object.keys(filter).length, [filter]);
 
+  const exportHandler = () => {
+    const workbook = utils.table_to_book(document.getElementById("table"), {
+      sheet: title,
+    });
+
+    writeFile(workbook, `${title}.xlsx`);
+  };
+
   if (data)
     return (
       <div>
         <ScrollArea offsetScrollbars>
-          <TableComponent highlightOnHover>
+          <TableComponent id="table" highlightOnHover>
             <thead>
               <tr>
                 {headers.map(({ label }) => (
-                  <th key={label}>{label}</th>
+                  <th key={label}>
+                    <p
+                      style={{
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {label}
+                    </p>
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {data.collection.map((row) => (
-                <tr key={row.id}>
+                <tr
+                  key={row.id}
+                  onClick={() => {
+                    router.push(`${route}/${row.id}`);
+                  }}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                >
                   {Object.values(headers).map(({ key, format }) => {
                     let value = get(row, key);
                     if (format) value = format(value);
-                    return <td key={key}>{value}</td>;
+                    return (
+                      <td key={key}>
+                        <p
+                          title={value}
+                          style={{
+                            maxWidth: 150,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {value}
+                        </p>
+                      </td>
+                    );
                   })}
                 </tr>
               ))}
@@ -147,6 +278,13 @@ const DataTable = ({ route, headers, filter }: DataTableProps) => {
                   if (value) setTake(value);
                 }}
               />
+              <Button
+                variant="light"
+                leftIcon={<IconFileExport />}
+                onClick={exportHandler}
+              >
+                Exporteren
+              </Button>
             </Group>
             {filtering && (
               <Text mt="md">
@@ -169,32 +307,244 @@ const FilterInput = ({
   onChange,
 }: {
   tableHeader: TableHeader;
-  onChange: (key: string) => (filter: string, value?: any) => void;
+  onChange: (key: string) => (value?: any) => void;
 }) => {
+  const [filterDateType, setFilterDateType] = useState<FilterExtraType>(
+    FilterExtraType.Equals
+  );
   const update = onChange(tableHeader.key);
 
   if (tableHeader.filterType === FilterType.Number)
     return (
-      <NumberInput
-        precision={0}
-        label={tableHeader.label}
-        onChange={(value) => {
-          update("equals", value ? Math.round(value) : undefined);
-        }}
-      />
+      <>
+        <Select
+          defaultValue={FilterExtraType.Equals}
+          label={tableHeader.label}
+          data={[
+            {
+              label: "Is gelijk aan",
+              value: FilterExtraType.Equals,
+            },
+            {
+              label: "Is groter dan",
+              value: FilterExtraType.Greater,
+            },
+            {
+              label: "Is kleiner dan",
+              value: FilterExtraType.Lesser,
+            },
+            {
+              label: "Is tussen",
+              value: FilterExtraType.Between,
+            },
+          ]}
+          style={{
+            flex: 1,
+          }}
+          onChange={(value: FilterExtraType) => {
+            update();
+            if (value) setFilterDateType(value);
+          }}
+        />
+        {filterDateType === FilterExtraType.Between ? (
+          <NumberRangeInput
+            onChange={(value) => {
+              update({
+                gt: value[0],
+                lt: value[1],
+              });
+            }}
+          />
+        ) : (
+          <NumberInput
+            style={{
+              flex: 1,
+            }}
+            precision={0}
+            onChange={(value) => {
+              update({
+                [filterDateType]: value,
+              });
+            }}
+          />
+        )}
+      </>
     );
 
   if (tableHeader.filterType === FilterType.String)
     return (
       <TextInput
+        style={{
+          flex: 1,
+        }}
         label={tableHeader.label}
         onChange={(e) => {
-          update("contains", e.target.value);
+          update({ contains: e.target.value });
         }}
       />
     );
 
+  if (tableHeader.filterType === FilterType.Date)
+    return (
+      <>
+        <Select
+          defaultValue={FilterExtraType.Equals}
+          label={tableHeader.label}
+          data={[
+            {
+              label: "Is gelijk aan",
+              value: FilterExtraType.Equals,
+            },
+            {
+              label: "Is later dan",
+              value: FilterExtraType.Greater,
+            },
+            {
+              label: "Is eerder dan",
+              value: FilterExtraType.Lesser,
+            },
+            {
+              label: "Is tussen",
+              value: FilterExtraType.Between,
+            },
+          ]}
+          style={{
+            flex: 1,
+          }}
+          onChange={(value: FilterExtraType) => {
+            update();
+            if (value) setFilterDateType(value);
+          }}
+        />
+        {filterDateType === FilterExtraType.Between ? (
+          <DateRangePicker
+            style={{
+              flex: 1,
+            }}
+            clearable
+            onChange={(value) => {
+              update({
+                gte: value[0],
+                lte: value[1],
+              });
+            }}
+          />
+        ) : (
+          <DatePicker
+            style={{
+              flex: 1,
+            }}
+            clearable
+            onChange={(value) => {
+              update({
+                [filterDateType]: value,
+              });
+            }}
+          />
+        )}
+      </>
+    );
+
+  if (tableHeader.filterType === FilterType.Decimal)
+    return (
+      <>
+        <Select
+          defaultValue={FilterExtraType.Equals}
+          label={tableHeader.label}
+          data={[
+            {
+              label: "Is gelijk aan",
+              value: FilterExtraType.Equals,
+            },
+            {
+              label: "Is groter dan",
+              value: FilterExtraType.Greater,
+            },
+            {
+              label: "Is kleiner dan",
+              value: FilterExtraType.Lesser,
+            },
+            {
+              label: "Is tussen",
+              value: FilterExtraType.Between,
+            },
+          ]}
+          style={{
+            flex: 1,
+          }}
+          onChange={(value: FilterExtraType) => {
+            update();
+            if (value) setFilterDateType(value);
+          }}
+        />
+        {filterDateType === FilterExtraType.Between ? (
+          <NumberRangeInput
+            precision={2}
+            onChange={(value) => {
+              update({
+                gt: value[0],
+                lt: value[1],
+              });
+            }}
+          />
+        ) : (
+          <NumberInput
+            precision={2}
+            style={{
+              flex: 1,
+            }}
+            onChange={(value) => {
+              update({
+                [filterDateType]: value,
+              });
+            }}
+          />
+        )}
+      </>
+    );
+
   return null;
+};
+
+const NumberRangeInput = ({
+  value = [undefined, undefined],
+  onChange,
+  precision = 0,
+}: {
+  value?: [number | undefined, number | undefined];
+  onChange: (values: [number | undefined, number | undefined]) => void;
+  precision?: number;
+}) => {
+  const [values, setValues] = useState(value);
+
+  return (
+    <>
+      <NumberInput
+        hideControls
+        style={{
+          width: 64,
+        }}
+        precision={precision}
+        value={values[0]}
+        onChange={(value) => {
+          setValues([value, values[1]]);
+          onChange([value, values[1]]);
+        }}
+      />
+      <NumberInput
+        hideControls
+        style={{
+          width: 64,
+        }}
+        precision={precision}
+        value={values[1]}
+        onChange={(value) => {
+          setValues([values[0], value]);
+          onChange([values[0], value]);
+        }}
+      />
+    </>
+  );
 };
 
 export default Table;

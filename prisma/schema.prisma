@@ -35,24 +35,26 @@ model State {
   expense   Expense  @relation(fields: [expenseId], references: [id])
   expenseId Int
   type      String
+  notes     String?
 }
 
 model Expense {
   id                     Int       @id @default(autoincrement())
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @default(now()) @updatedAt
-  States                 State[]
+  completedAt            DateTime?
+  states                 State[]
   handler                User      @relation(fields: [handlerId], references: [id])
   handlerId              Int
   customerName           String
-  invoiceAdres           String
+  invoiceAddress         String
   postalCode             String
   city                   String
   passingDate            DateTime
   notaryName             String
   company                Company   @relation(fields: [companyId], references: [id])
   companyId              Int
-  objectAdres            String
+  objectAddress          String
   objectPostalCode       String
   objectCity             String
   mortgageInvoiceAmount  Decimal

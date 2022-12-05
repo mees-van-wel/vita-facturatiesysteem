@@ -15,7 +15,12 @@ import {
 } from "@mantine/core";
 import Image from "next/image";
 import Logo from "../../assets/images/vh-verticaal-master-png.png";
-import { IconHome, IconReportMoney, IconLogout } from "@tabler/icons";
+import {
+  IconHome,
+  IconReportMoney,
+  IconLogout,
+  IconUsers,
+} from "@tabler/icons";
 import Link from "next/link";
 import { Route } from "../../enums/route.enum";
 import { useRouter } from "next/router";
@@ -28,7 +33,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const theme = useMantineTheme();
   const router = useRouter();
   const { data: session } = useSession();
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(true);
 
   return (
     <AppShell
@@ -48,7 +53,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             p="md"
             hiddenBreakpoint="sm"
             hidden={!opened}
-            width={{ sm: 200, lg: 300 }}
+            width={{ sm: 200 }}
           >
             <Link href={Route.Home} passHref>
               <NavLink
@@ -59,9 +64,22 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             </Link>
             <Link href={Route.Expenses} passHref>
               <NavLink
-                label="Declaraties"
+                label="Verzoeken"
                 icon={<IconReportMoney />}
-                active={router.pathname === Route.Expenses}
+                active={
+                  router.pathname === Route.Expenses ||
+                  router.pathname === Route.Expense
+                }
+              />
+            </Link>
+            <Link href={Route.Users} passHref>
+              <NavLink
+                label="Gebruikers"
+                icon={<IconUsers />}
+                active={
+                  router.pathname === Route.Users ||
+                  router.pathname === Route.User
+                }
               />
             </Link>
             <NavLink
@@ -72,24 +90,17 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           </Navbar>
         ) : undefined
       }
-      // aside={
-      //   <MediaQuery smallerThan="sm" styles={{ display: "none" }}>
-      //     <Aside p="md" hiddenBreakpoint="sm" width={{ sm: 200, lg: 300 }}>
-      //       <Text>Application sidebar</Text>
-      //     </Aside>
-      //   </MediaQuery>
-      // }
       footer={
         <Footer height={60} p="md">
           Developed by{" "}
           <Anchor href="https://www.hexa-it.nl" target="_blank">
             Hexa-IT
           </Anchor>{" "}
-          - Version 1.0.0
+          - Version 0.1.0
         </Footer>
       }
       header={
-        <Header height={{ base: 50, md: 70 }}>
+        <Header height={{ base: 70 }}>
           <div
             style={{
               display: "flex",
@@ -138,7 +149,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         </Header>
       }
     >
-      {children}
+      <div>{children}</div>
     </AppShell>
   );
 };
