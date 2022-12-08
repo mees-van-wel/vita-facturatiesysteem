@@ -160,7 +160,7 @@ interface FormValues {
   IBDeclaration: string;
 }
 
-const requiredValidation = (value: any) =>
+export const requiredValidation = (value: any) =>
   !value ? "Dit veld is verplicht" : null;
 
 const fileValidation = (file: File | null) =>

@@ -92,7 +92,7 @@ const Table = ({ title, route, dataRoute, headers }: TableProps) => {
     <div>
       <Group mb="md">
         <Title>{title}</Title>
-        <Link href={`${Route.Expenses}/new`}>
+        <Link href={`${route}/new`}>
           <Button leftIcon={<IconPlus />}>Nieuw</Button>
         </Link>
         <Button
