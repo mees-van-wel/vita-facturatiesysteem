@@ -265,7 +265,7 @@ const DataTable = ({
           <div>
             <Group align="end">
               <Pagination
-                total={Math.round(data.count / parseInt(take))}
+                total={Math.round(data.count / parseInt(take)) + 1}
                 page={page}
                 onChange={setPage}
                 withEdges

@@ -28,7 +28,10 @@ export const authOptions: NextAuthOptions = {
     },
     // @ts-ignore
     session: ({ session, token }) => {
-      return { ...session, user: { ...session.user, role: token.role } };
+      return {
+        ...session,
+        user: { ...session.user, role: token.role, id: token.id },
+      };
     },
   },
   pages: {

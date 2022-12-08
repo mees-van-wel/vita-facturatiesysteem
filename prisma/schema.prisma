@@ -63,6 +63,7 @@ model Expense {
   signedOTDV             String
   zzpInvoice             String?
   paymentMethod          String
+  spreadPaymentAgreement String?
   notes                  String?
   IBDeclaration          String
 }

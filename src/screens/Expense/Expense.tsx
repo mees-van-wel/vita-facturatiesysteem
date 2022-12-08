@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
+import { showNotification } from "@mantine/notifications";
 import {
   Company,
   Expense as ExpenseInterface,
@@ -22,26 +23,72 @@ import {
   State,
   User,
 } from "@prisma/client";
-import { IconArrowBack, IconFileText, IconSend } from "@tabler/icons";
-import { useQuery } from "@tanstack/react-query";
+import {
+  IconArrowBack,
+  IconDeviceFloppy,
+  IconFileText,
+  IconSend,
+} from "@tabler/icons";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, useMemo } from "react";
 import { MoneyInput } from "../../components/MoneyInput";
+import {
+  ExpenseState,
+  expenseStateColor,
+  expenseStateLabel,
+} from "../../enums/expenseState.enum";
 import { Role } from "../../enums/role.enum";
 import { Route } from "../../enums/route.enum";
+import { enumToArray } from "../../enums/tableCount.enum";
 import { ApiCollectionResponse } from "../../interfaces/apiCollectionResponse.interface";
 import { MainLayout } from "../../layouts/Main";
 import { query } from "../../lib/query.lib";
+import { getChangedFields } from "../../utilities/getChangedFields.utility";
 
 export const NEW = "new";
+
+enum PaymentMethod {
+  Notary = "NOTARY",
+  Invoice = "INVOICE",
+  Spread = "SPREAD",
+}
+
+const PaymentMethodLabel = {
+  [PaymentMethod.Notary]: "Betaling via de notaris",
+  [PaymentMethod.Invoice]: "Rechtstreeks op factuurbasis",
+  [PaymentMethod.Spread]: "Gespreid betalen conform OTDV",
+};
+
+const paymentMethodData = enumToArray(PaymentMethod).map(({ value }) => ({
+  label: PaymentMethodLabel[value],
+  value,
+}));
+
+enum IBDeclaration {
+  No = "NO",
+  Yes = "YES",
+}
+
+const IBDeclarationLabel = {
+  [IBDeclaration.No]: "Nee, klant heeft geen interesse",
+  [IBDeclaration.Yes]:
+    "Ja, stuur klantgegevens op passeerdatum door naar partner",
+};
+
+const IBDeclarationData = enumToArray(IBDeclaration).map(({ value }) => ({
+  label: IBDeclarationLabel[value as keyof IBDeclaration],
+  value,
+}));
 
 export const Expense = () => {
   const router = useRouter();
   const id = router.query.id as string;
 
-  const { data: expence } = useQuery({
+  const { data: expense } = useQuery({
     ...query<
       ExpenseInterface & {
         states: State[];
@@ -69,9 +116,9 @@ export const Expense = () => {
 
   return (
     <div>
-      {users && companies && (expence || id === NEW) ? (
+      {users && companies && (expense || id === NEW) ? (
         <Form
-          expence={expence}
+          expense={expense}
           users={users.collection}
           companies={companies.collection}
         />
@@ -85,7 +132,7 @@ export const Expense = () => {
 interface FormProps {
   users: User[];
   companies: Company[];
-  expence?: ExpenseInterface & {
+  expense?: ExpenseInterface & {
     states: State[];
   };
 }
@@ -108,51 +155,127 @@ interface FormValues {
   signedOTDV: File | null;
   zzpInvoice: File | null;
   paymentMethod: string;
+  spreadPaymentAgreement: File | null;
   notes: string;
   IBDeclaration: string;
 }
 
-const Form = ({ expence, users, companies }: FormProps) => {
+const requiredValidation = (value: any) =>
+  !value ? "Dit veld is verplicht" : null;
+
+const fileValidation = (file: File | null) =>
+  !file ? "Dit veld is verplicht" : file.size > 4000000 ? "Maximaal 4MB" : null;
+
+const Form = ({ expense, users, companies }: FormProps) => {
+  const session = useSession();
+  const router = useRouter();
+  const id = router.query.id as string;
+
+  const createExpense = useMutation({
+    mutationFn: (params: FormData) =>
+      axios.post<ExpenseInterface>(`${Route.ApiExpenses}/${id}`, params, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }),
+  });
+
+  const updateExpense = useMutation({
+    mutationFn: (params: FormData) =>
+      axios.put<ExpenseInterface>(`${Route.ApiExpenses}/${id}`, params, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }),
+  });
+
+  console.log(expense);
+
+  const initialValues = useMemo(
+    () => ({
+      handlerId: expense?.handlerId
+        ? expense.handlerId.toString()
+        : session.data?.user.role !== Role.InternalEmployee
+        ? session.data?.user.id.toString() ?? ""
+        : "",
+      customerName: expense?.customerName ?? "",
+      invoiceAddress: expense?.invoiceAddress ?? "",
+      postalCode: expense?.postalCode ?? "",
+      city: expense?.city ?? "",
+      passingDate: expense?.passingDate ? new Date(expense.passingDate) : null,
+      notaryName: expense?.notaryName ?? "",
+      companyId: expense?.companyId.toString() ?? "",
+      objectAddress: expense?.objectAddress ?? "",
+      objectPostalCode: expense?.objectPostalCode ?? "",
+      objectCity: expense?.objectCity ?? "",
+      mortgageInvoiceAmount: expense?.mortgageInvoiceAmount
+        ? new Prisma.Decimal(expense.mortgageInvoiceAmount).toNumber()
+        : undefined,
+      insuranceInvoiceAmount: expense?.insuranceInvoiceAmount
+        ? new Prisma.Decimal(expense.insuranceInvoiceAmount).toNumber()
+        : undefined,
+      otherInvoiceAmount: expense?.otherInvoiceAmount
+        ? new Prisma.Decimal(expense.otherInvoiceAmount).toNumber()
+        : undefined,
+      signedOTDV: expense?.signedOTDV
+        ? new File([], expense.signedOTDV, { type: "application/pdf" })
+        : null,
+      zzpInvoice: expense?.zzpInvoice
+        ? new File([], expense.zzpInvoice, { type: "application/pdf" })
+        : null,
+      paymentMethod: expense?.paymentMethod ?? "",
+      spreadPaymentAgreement: expense?.spreadPaymentAgreement
+        ? new File([], expense.spreadPaymentAgreement, {
+            type: "application/pdf",
+          })
+        : null,
+      notes: expense?.notes ?? "",
+      IBDeclaration: expense?.IBDeclaration ?? "",
+    }),
+    [expense, session]
+  );
+
   const form = useForm<FormValues>({
-    initialValues: {
-      handlerId: expence?.handlerId.toString() ?? "",
-      customerName: expence?.customerName ?? "",
-      invoiceAddress: expence?.invoiceAddress ?? "",
-      postalCode: expence?.postalCode ?? "",
-      city: expence?.city ?? "",
-      passingDate: expence?.passingDate ? new Date(expence.passingDate) : null,
-      notaryName: expence?.notaryName ?? "",
-      companyId: expence?.companyId.toString() ?? "",
-      objectAddress: expence?.objectAddress ?? "",
-      objectPostalCode: expence?.objectPostalCode ?? "",
-      objectCity: expence?.objectCity ?? "",
-      mortgageInvoiceAmount: expence?.mortgageInvoiceAmount
-        ? new Prisma.Decimal(expence.mortgageInvoiceAmount).toNumber()
-        : undefined,
-      insuranceInvoiceAmount: expence?.insuranceInvoiceAmount
-        ? new Prisma.Decimal(expence.insuranceInvoiceAmount).toNumber()
-        : undefined,
-      otherInvoiceAmount: expence?.otherInvoiceAmount
-        ? new Prisma.Decimal(expence.otherInvoiceAmount).toNumber()
-        : undefined,
-      signedOTDV: expence?.signedOTDV ? new File([], expence.signedOTDV) : null,
-      zzpInvoice: expence?.zzpInvoice ? new File([], expence.zzpInvoice) : null,
-      paymentMethod: expence?.paymentMethod ?? "",
-      notes: expence?.notes ?? "",
-      IBDeclaration: expence?.IBDeclaration ?? "",
+    initialValues: initialValues,
+    validate: {
+      handlerId: requiredValidation,
+      customerName: requiredValidation,
+      invoiceAddress: requiredValidation,
+      postalCode: requiredValidation,
+      city: requiredValidation,
+      passingDate: requiredValidation,
+      notaryName: requiredValidation,
+      companyId: requiredValidation,
+      objectAddress: requiredValidation,
+      objectPostalCode: requiredValidation,
+      objectCity: requiredValidation,
+      mortgageInvoiceAmount: requiredValidation,
+      insuranceInvoiceAmount: requiredValidation,
+      otherInvoiceAmount: requiredValidation,
+      signedOTDV: fileValidation,
+      zzpInvoice:
+        session.data?.user.role === Role.ExternalConsultant
+          ? fileValidation
+          : undefined,
+      paymentMethod: requiredValidation,
+      spreadPaymentAgreement: (value: File | null, values: FormValues) =>
+        values.paymentMethod === PaymentMethod.Spread
+          ? fileValidation(value)
+          : undefined,
+      IBDeclaration: requiredValidation,
     },
   });
 
-  const session = useSession();
-
-  const isLocked = false;
-
   const handlerSelectData = useMemo(
-    () => users.map(({ name, id }) => ({ label: name, value: id.toString() })),
+    () =>
+      users
+        .filter(
+          ({ role }) =>
+            role === Role.ExternalConsultant || role === Role.InternalConsultant
+        )
+        .map(({ name, id }) => ({ label: name, value: id.toString() })),
     [users]
   );
-
-  console.log(expence, handlerSelectData);
 
   const companieSelectData = useMemo(
     () =>
@@ -160,41 +283,118 @@ const Form = ({ expence, users, companies }: FormProps) => {
     [companies]
   );
 
+  const submitHandler = async (values: FormValues) => {
+    const formValues = expense
+      ? getChangedFields(values, initialValues)
+      : values;
+
+    const formData = new FormData();
+    Object.keys(formValues).forEach((key) => {
+      formData.append(key, formValues[key]);
+    });
+
+    if (
+      initialValues.signedOTDV?.lastModified !== values.signedOTDV?.lastModified
+    ) {
+      formData.delete("signedOTDV");
+      formData.append("signedOTDV", values.signedOTDV ?? "");
+    }
+
+    if (
+      initialValues.zzpInvoice?.lastModified !== values.zzpInvoice?.lastModified
+    ) {
+      formData.delete("zzpInvoice");
+      formData.append("zzpInvoice", values.zzpInvoice ?? "");
+    }
+
+    if (
+      initialValues.spreadPaymentAgreement?.lastModified !==
+      values.spreadPaymentAgreement?.lastModified
+    ) {
+      formData.delete("spreadPaymentAgreement");
+      formData.append(
+        "spreadPaymentAgreement",
+        values.spreadPaymentAgreement ?? ""
+      );
+    }
+
+    if (expense)
+      updateExpense.mutate(formData, {
+        onSuccess: () => {
+          form.resetDirty();
+          showNotification({
+            message: "Opgeslagen",
+            color: "green",
+          });
+        },
+      });
+    else
+      createExpense.mutate(formData, {
+        onSuccess: async ({ data: expense }) => {
+          form.resetDirty();
+          await router.push(`${Route.Expenses}/${expense.id}`);
+
+          showNotification({
+            message: "Ingediend",
+            color: "green",
+          });
+        },
+      });
+  };
+
+  const lastState = useMemo(
+    () => expense?.states[expense.states.length - 1],
+    [expense?.states]
+  );
+
+  const isLocked = useMemo(
+    () => lastState?.type === ExpenseState.Submitted,
+    [lastState?.type]
+  );
+
   return (
     <div>
-      <form>
+      <form onSubmit={form.onSubmit(submitHandler)}>
         <Group>
           <Title>Verzoek</Title>
           <Link href={Route.Expenses}>
             <Button leftIcon={<IconArrowBack />}>Terug</Button>
           </Link>
           {!isLocked && (
-            <Button leftIcon={<IconSend />} type="submit">
-              Indienen
+            <Button
+              leftIcon={expense ? <IconDeviceFloppy /> : <IconSend />}
+              type="submit"
+            >
+              {expense ? "Opslaan" : "Indienen"}
             </Button>
           )}
         </Group>
-        {expence && (
+        {expense && (
           <Stack my="md" spacing="sm">
             <Text>
-              Ingedient:{" "}
+              Ingediend:{" "}
               <Badge>
-                {new Date(expence.createdAt).toLocaleString("nl-NL")}
+                {new Date(expense.createdAt).toLocaleString("nl-NL")}
               </Badge>
             </Text>
             <Text>
               Gefactureerd:{" "}
               <Badge>
-                {expence.completedAt
-                  ? new Date(expence.completedAt).toLocaleString("nl-NL")
+                {expense.completedAt
+                  ? new Date(expense.completedAt).toLocaleString("nl-NL")
                   : "Nog niet"}
               </Badge>
             </Text>
           </Stack>
         )}
         <Select
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
+          searchable
+          readOnly={
+            isLocked || session.data?.user.role !== Role.InternalEmployee
+          }
+          withAsterisk={
+            !isLocked && session.data?.user.role === Role.InternalEmployee
+          }
           data={handlerSelectData}
           label="Behandelaar"
           {...form.getInputProps("handlerId")}
@@ -223,11 +423,11 @@ const Form = ({ expence, users, companies }: FormProps) => {
           label="Stad"
           {...form.getInputProps("city")}
         />
-        {isLocked && expence?.passingDate ? (
+        {isLocked && expense?.passingDate ? (
           <p>
             Passeerdatum:{" "}
             <Badge>
-              {new Date(expence.passingDate).toLocaleDateString("nl-NL")}
+              {new Date(expense.passingDate).toLocaleDateString("nl-NL")}
             </Badge>
           </p>
         ) : (
@@ -244,6 +444,7 @@ const Form = ({ expence, users, companies }: FormProps) => {
           {...form.getInputProps("notaryName")}
         />
         <Select
+          searchable
           readOnly={isLocked}
           withAsterisk={!isLocked}
           label="Maatschappij"
@@ -291,6 +492,7 @@ const Form = ({ expence, users, companies }: FormProps) => {
             <FileInput
               withAsterisk={!isLocked}
               label="Ondertekende OTDV"
+              description="PDF, Max 4MB"
               accept="application/pdf"
               {...form.getInputProps("signedOTDV")}
             />
@@ -298,6 +500,7 @@ const Form = ({ expence, users, companies }: FormProps) => {
               <FileInput
                 withAsterisk={!isLocked}
                 label="Factuur ZZP-er"
+                description="PDF, Max 4MB"
                 accept="application/pdf"
                 {...form.getInputProps("zzpInvoice")}
               />
@@ -305,19 +508,13 @@ const Form = ({ expence, users, companies }: FormProps) => {
           </>
         ) : (
           <Group mt="md" mb="xs">
-            {expence?.signedOTDV && (
-              <Link
-                href={`/public/uploads/${expence.signedOTDV}.pdf`}
-                target="_blank"
-              >
+            {expense?.signedOTDV && (
+              <Link href={`/uploads/${expense.signedOTDV}`} target="_blank">
                 <Button leftIcon={<IconFileText />}>Ondertekende OTDV</Button>
               </Link>
             )}
-            {expence?.zzpInvoice && (
-              <Link
-                href={`/public/uploads/${expence.zzpInvoice}.pdf`}
-                target="_blank"
-              >
+            {expense?.zzpInvoice && (
+              <Link href={`/uploads/${expense.zzpInvoice}`} target="_blank">
                 <Button leftIcon={<IconFileText />}>Factuur ZZP-er</Button>
               </Link>
             )}
@@ -325,34 +522,65 @@ const Form = ({ expence, users, companies }: FormProps) => {
         )}
         <Textarea
           readOnly={isLocked}
-          withAsterisk={!isLocked}
           label="Opmerkingen"
           autosize
           minRows={3}
           {...form.getInputProps("notes")}
         />
         <Select
+          searchable
           withAsterisk={!isLocked}
           readOnly={isLocked}
-          data={[]}
+          data={paymentMethodData}
           label="Betaalwijze"
+          {...form.getInputProps("paymentMethod")}
         />
+        {form.values.paymentMethod === PaymentMethod.Spread &&
+          (!isLocked ? (
+            <FileInput
+              withAsterisk={!isLocked}
+              label="Overeenkomst Gespreide Betaling"
+              description="PDF, Max 4MB"
+              accept="application/pdf"
+              {...form.getInputProps("spreadPaymentAgreement")}
+            />
+          ) : (
+            expense?.spreadPaymentAgreement && (
+              <Group mt="md" mb="xs">
+                <Link
+                  href={`/uploads/${expense.spreadPaymentAgreement}`}
+                  target="_blank"
+                >
+                  <Button leftIcon={<IconFileText />}>
+                    Overeenkomst Gespreide Betaling
+                  </Button>
+                </Link>
+              </Group>
+            )
+          ))}
         <Select
+          searchable
           withAsterisk={!isLocked}
           readOnly={isLocked}
-          data={[]}
+          data={IBDeclarationData}
           label="IB-aangifte door partner"
+          {...form.getInputProps("IBDeclaration")}
         />
       </form>
-      {!!expence?.states.length && (
+      {!!expense?.states.length && (
         <Aside p="md" width={{ sm: 300 }}>
           <Timeline
-            active={expence.states.length - 1}
+            active={expense.states.length - 1}
             bulletSize={24}
             lineWidth={2}
           >
-            {expence.states.map((state) => (
-              <Timeline.Item key={state.id} title={state.type}>
+            {expense.states.map((state) => (
+              <Timeline.Item
+                bullet
+                color={expenseStateColor[state.type]}
+                key={state.id}
+                title={expenseStateLabel[state.type]}
+              >
                 {state.notes && (
                   <Text color="dimmed" size="sm">
                     {state.notes}

@@ -4,6 +4,6 @@ import { Role } from "../enums/role.enum";
 
 declare module "next-auth" {
   interface Session {
-    user: { role: Role; name: string };
+    user: { role: Role; name: string; id: number };
   }
 }
