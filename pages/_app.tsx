@@ -10,6 +10,7 @@ import { NotificationsProvider } from "@mantine/notifications";
 import { AuthenticationContextProvider } from "../src/context/AuthenticationContextProvidert";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ModalsProvider } from "@mantine/modals";
 
 const inter = Barlow({ weight: "400", subsets: ["latin"] });
 
@@ -52,14 +53,16 @@ export default function App({
         }}
       >
         <NotificationsProvider position="top-right">
-          <SessionProvider session={session}>
-            <AuthenticationContextProvider>
-              <QueryClientProvider client={queryClient}>
-                {getLayout(<Component {...pageProps} />)}
-                <ReactQueryDevtools initialIsOpen={false} />
-              </QueryClientProvider>
-            </AuthenticationContextProvider>
-          </SessionProvider>
+          <ModalsProvider>
+            <SessionProvider session={session}>
+              <AuthenticationContextProvider>
+                <QueryClientProvider client={queryClient}>
+                  {getLayout(<Component {...pageProps} />)}
+                  <ReactQueryDevtools initialIsOpen={false} />
+                </QueryClientProvider>
+              </AuthenticationContextProvider>
+            </SessionProvider>
+          </ModalsProvider>
         </NotificationsProvider>
       </MantineProvider>
     </>

@@ -25,6 +25,8 @@ import {
 } from "@prisma/client";
 import {
   IconArrowBack,
+  IconCheck,
+  IconX,
   IconDeviceFloppy,
   IconFileText,
   IconSend,
@@ -189,8 +191,6 @@ const Form = ({ expense, users, companies }: FormProps) => {
       }),
   });
 
-  console.log(expense);
-
   const initialValues = useMemo(
     () => ({
       handlerId: expense?.handlerId
@@ -348,8 +348,15 @@ const Form = ({ expense, users, companies }: FormProps) => {
   );
 
   const isLocked = useMemo(
-    () => lastState?.type === ExpenseState.Submitted,
-    [lastState?.type]
+    () =>
+      session.data?.user.role === Role.FinancialWorker ||
+      lastState?.type === ExpenseState.Submitted,
+    [lastState?.type, session.data?.user.role]
+  );
+
+  const state = useMemo(
+    () => (expense ? expense.states[expense.states.length - 1] : undefined),
+    [expense]
   );
 
   return (
@@ -368,6 +375,19 @@ const Form = ({ expense, users, companies }: FormProps) => {
               {expense ? "Opslaan" : "Indienen"}
             </Button>
           )}
+          {/* TODO Implemented back-end logic */}
+          {session.data?.user.role === Role.FinancialWorker &&
+            (state?.type === ExpenseState.Submitted ||
+              state?.type === ExpenseState.Resubmitted) && (
+              <>
+                <Button color="green" leftIcon={<IconCheck />}>
+                  Goedkeuren
+                </Button>
+                <Button color="red" leftIcon={<IconX />}>
+                  Afkeuren
+                </Button>
+              </>
+            )}
         </Group>
         {expense && (
           <Stack my="md" spacing="sm">

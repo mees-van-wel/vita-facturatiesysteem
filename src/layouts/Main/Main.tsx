@@ -25,6 +25,7 @@ import Link from "next/link";
 import { Route } from "../../enums/route.enum";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/react";
+import { Role } from "../../enums/role.enum";
 interface MainLayoutProps {
   children: ReactNode;
 }
@@ -62,26 +63,30 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 active={router.pathname === Route.Home}
               />
             </Link>
-            <Link href={Route.Expenses} passHref>
-              <NavLink
-                label="Verzoeken"
-                icon={<IconReportMoney />}
-                active={
-                  router.pathname === Route.Expenses ||
-                  router.pathname === Route.Expense
-                }
-              />
-            </Link>
-            <Link href={Route.Users} passHref>
-              <NavLink
-                label="Gebruikers"
-                icon={<IconUsers />}
-                active={
-                  router.pathname === Route.Users ||
-                  router.pathname === Route.User
-                }
-              />
-            </Link>
+            {session.user.role !== Role.Administrator && (
+              <Link href={Route.Expenses} passHref>
+                <NavLink
+                  label="Verzoeken"
+                  icon={<IconReportMoney />}
+                  active={
+                    router.pathname === Route.Expenses ||
+                    router.pathname === Route.Expense
+                  }
+                />
+              </Link>
+            )}
+            {session.user.role === Role.Administrator && (
+              <Link href={Route.Users} passHref>
+                <NavLink
+                  label="Gebruikers"
+                  icon={<IconUsers />}
+                  active={
+                    router.pathname === Route.Users ||
+                    router.pathname === Route.User
+                  }
+                />
+              </Link>
+            )}
             <NavLink
               onClick={() => signOut()}
               label="Uitloggen"

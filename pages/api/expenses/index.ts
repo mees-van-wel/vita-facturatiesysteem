@@ -1,5 +1,7 @@
+import { Expense } from "@prisma/client";
 import { NextApiResponse, NextApiRequest } from "next";
 import { unstable_getServerSession } from "next-auth";
+import { Role } from "../../../src/enums/role.enum";
 import { prisma } from "../../../src/lib/prisma.lib";
 import { authOptions } from "./../auth/[...nextauth]";
 
@@ -15,7 +17,7 @@ export default async function handler(
 
   const { page, take, filter, sort } = req.body;
 
-  const where = Object.keys(filter).reduce((object, key) => {
+  const where = Object.keys(filter).reduce<Partial<Expense>>((object, key) => {
     const reversed = key.split(".").reverse();
     const values = filter[key];
 
@@ -27,6 +29,16 @@ export default async function handler(
     return { ...object, ...value };
   }, {});
 
+  if (session.user.role !== Role.FinancialWorker)
+    where["OR"] = [
+      {
+        createdById: { equals: session.user.id },
+      },
+      {
+        handlerId: { equals: session.user.id },
+      },
+    ];
+
   const [count, collection] = await prisma.$transaction([
     prisma.expense.count(),
     prisma.expense.findMany({
@@ -35,6 +47,7 @@ export default async function handler(
       include: {
         handler: { select: { name: true } },
         company: { select: { name: true } },
+        states: true,
       },
       where,
       orderBy: Object.keys(sort).map((key) => {

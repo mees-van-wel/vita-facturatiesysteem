@@ -11,14 +11,15 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  name      String
-  email     String    @unique
-  password  String
-  role      String
-  expenses  Expense[]
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  name            String
+  email           String    @unique
+  password        String
+  role            String
+  createdExpenses Expense[] @relation("CreatedExpenses")
+  handledExpenses Expense[] @relation("HandledExpenses")
 }
 
 model Company {
@@ -44,7 +45,9 @@ model Expense {
   updatedAt              DateTime  @default(now()) @updatedAt
   completedAt            DateTime?
   states                 State[]
-  handler                User      @relation(fields: [handlerId], references: [id])
+  createdBy              User      @relation("CreatedExpenses", fields: [createdById], references: [id])
+  createdById            Int
+  handler                User      @relation("HandledExpenses", fields: [handlerId], references: [id])
   handlerId              Int
   customerName           String
   invoiceAddress         String

@@ -133,6 +133,12 @@ export default async function userHandler(
       fs.unlinkSync(file.filepath);
     });
 
+    update.createdBy = {
+      connect: {
+        id: session.user.id,
+      },
+    };
+
     if (data.fields.handlerId) {
       delete update.handlerId;
       update.handler = {

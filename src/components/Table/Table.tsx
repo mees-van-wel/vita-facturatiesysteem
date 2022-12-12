@@ -11,7 +11,7 @@ import {
   NumberInput,
   TextInput,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { TableCount, tableCount } from "../../enums/tableCount.enum";
 import get from "lodash.get";
 import { useDebouncedState } from "@mantine/hooks";
@@ -33,11 +33,13 @@ import { DatePicker, DateRangePicker } from "@mantine/dates";
 import { useRouter } from "next/router";
 import { utils, writeFile } from "xlsx";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Role } from "../../enums/role.enum";
 
 export interface TableHeader {
   key: string;
   label: string;
-  format?: (value: any) => string | number;
+  format?: (value: any) => ReactNode;
   filterType?: FilterType;
 }
 
@@ -60,6 +62,7 @@ enum SortOption {
 type Sort = Record<string, SortOption>;
 
 const Table = ({ title, route, dataRoute, headers }: TableProps) => {
+  const session = useSession();
   const [showFilter, setShowFilter] = useState(false);
   const [filter, setFilter] = useDebouncedState<Filter>({}, 250);
   const [sort, setSort] = useState<Sort>({});
@@ -92,9 +95,11 @@ const Table = ({ title, route, dataRoute, headers }: TableProps) => {
     <div>
       <Group mb="md">
         <Title>{title}</Title>
-        <Link href={`${route}/new`}>
-          <Button leftIcon={<IconPlus />}>Nieuw</Button>
-        </Link>
+        {session.data?.user.role !== Role.FinancialWorker && (
+          <Link href={`${route}/new`}>
+            <Button leftIcon={<IconPlus />}>Nieuw</Button>
+          </Link>
+        )}
         <Button
           leftIcon={showFilter ? <IconAdjustmentsOff /> : <IconAdjustments />}
           onClick={() => {
@@ -183,7 +188,7 @@ const DataTable = ({
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [take, setTake] = useState(TableCount.Fifty);
-  const { error, data } = useQuery(
+  const { data } = useQuery(
     query<ApiCollectionResponse>({
       route: dataRoute,
       method: "POST",
