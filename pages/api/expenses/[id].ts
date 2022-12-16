@@ -85,6 +85,16 @@ export default async function userHandler(
     if (data.fields.passingDate)
       update.passingDate = new Date(data.fields.passingDate as string);
 
+    if (!data.fields.states)
+      update.states = {
+        create: {
+          type: ExpenseState.Resubmitted,
+        },
+      };
+
+    if (data.fields.states?.create.type === ExpenseState.Completed)
+      update.completedAt = new Date();
+
     const expense = await prisma.expense.update({
       data: update,
       where: { id: parseInt(id as string) },

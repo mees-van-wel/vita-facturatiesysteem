@@ -60,9 +60,9 @@ model Expense {
   objectAddress          String
   objectPostalCode       String
   objectCity             String
-  mortgageInvoiceAmount  Decimal
-  insuranceInvoiceAmount Decimal
-  otherInvoiceAmount     Decimal
+  mortgageInvoiceAmount  Decimal?
+  insuranceInvoiceAmount Decimal?
+  otherInvoiceAmount     Decimal?
   signedOTDV             String
   zzpInvoice             String?
   paymentMethod          String

@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
+import { closeModal, openModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import {
   Company,
@@ -36,7 +37,8 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactElement, useMemo } from "react";
+import { ReactElement, useMemo, useState } from "react";
+import { queryClient } from "../../../pages/_app";
 import { MoneyInput } from "../../components/MoneyInput";
 import {
   ExpenseState,
@@ -249,9 +251,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
       objectAddress: requiredValidation,
       objectPostalCode: requiredValidation,
       objectCity: requiredValidation,
-      mortgageInvoiceAmount: requiredValidation,
-      insuranceInvoiceAmount: requiredValidation,
-      otherInvoiceAmount: requiredValidation,
+      // mortgageInvoiceAmount: requiredValidation,
+      // insuranceInvoiceAmount: requiredValidation,
+      // otherInvoiceAmount: requiredValidation,
       signedOTDV: fileValidation,
       zzpInvoice:
         session.data?.user.role === Role.ExternalConsultant
@@ -269,10 +271,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const handlerSelectData = useMemo(
     () =>
       users
-        .filter(
-          ({ role }) =>
-            role === Role.ExternalConsultant || role === Role.InternalConsultant
-        )
+        .filter(({ role }) => role === Role.InternalConsultant)
         .map(({ name, id }) => ({ label: name, value: id.toString() })),
     [users]
   );
@@ -320,12 +319,17 @@ const Form = ({ expense, users, companies }: FormProps) => {
 
     if (expense)
       updateExpense.mutate(formData, {
-        onSuccess: () => {
+        onSuccess: ({ data: updatedExpense }) => {
           form.resetDirty();
           showNotification({
             message: "Opgeslagen",
             color: "green",
           });
+
+          queryClient.setQueryData(
+            [`${Route.ApiExpenses}/${id}`],
+            updatedExpense
+          );
         },
       });
     else
@@ -350,7 +354,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const isLocked = useMemo(
     () =>
       session.data?.user.role === Role.FinancialWorker ||
-      lastState?.type === ExpenseState.Submitted,
+      (lastState?.type && lastState.type !== ExpenseState.Rejected),
     [lastState?.type, session.data?.user.role]
   );
 
@@ -358,6 +362,68 @@ const Form = ({ expense, users, companies }: FormProps) => {
     () => (expense ? expense.states[expense.states.length - 1] : undefined),
     [expense]
   );
+
+  const approveHandler = () => {
+    updateExpense.mutate(
+      {
+        states: {
+          create: {
+            type: ExpenseState.Approved,
+          },
+        },
+      },
+      {
+        onSuccess: ({ data: updatedExpense }) => {
+          queryClient.setQueryData(
+            [`${Route.ApiExpenses}/${id}`],
+            updatedExpense
+          );
+        },
+      }
+    );
+  };
+
+  const rejectHandler = (notes: string, onSuccess: () => void) => {
+    updateExpense.mutate(
+      {
+        states: {
+          create: {
+            type: ExpenseState.Rejected,
+            notes,
+          },
+        },
+      },
+      {
+        onSuccess: ({ data: updatedExpense }) => {
+          onSuccess();
+          queryClient.setQueryData(
+            [`${Route.ApiExpenses}/${id}`],
+            updatedExpense
+          );
+        },
+      }
+    );
+  };
+
+  const completeHandler = () => {
+    updateExpense.mutate(
+      {
+        states: {
+          create: {
+            type: ExpenseState.Completed,
+          },
+        },
+      },
+      {
+        onSuccess: ({ data: updatedExpense }) => {
+          queryClient.setQueryData(
+            [`${Route.ApiExpenses}/${id}`],
+            updatedExpense
+          );
+        },
+      }
+    );
+  };
 
   return (
     <div>
@@ -375,19 +441,44 @@ const Form = ({ expense, users, companies }: FormProps) => {
               {expense ? "Opslaan" : "Indienen"}
             </Button>
           )}
-          {/* TODO Implemented back-end logic */}
-          {session.data?.user.role === Role.FinancialWorker &&
-            (state?.type === ExpenseState.Submitted ||
-              state?.type === ExpenseState.Resubmitted) && (
-              <>
-                <Button color="green" leftIcon={<IconCheck />}>
-                  Goedkeuren
+          {session.data?.user.role === Role.FinancialWorker && (
+            <>
+              {(state?.type === ExpenseState.Submitted ||
+                state?.type === ExpenseState.Resubmitted) && (
+                <>
+                  <Button
+                    color="green"
+                    leftIcon={<IconCheck />}
+                    onClick={approveHandler}
+                  >
+                    Goedkeuren
+                  </Button>
+                  <Button
+                    color="red"
+                    leftIcon={<IconX />}
+                    onClick={() => {
+                      openModal({
+                        title: "Verzoek afkeuren",
+                        modalId: "reject-expense",
+                        children: <RejectModal onSubmit={rejectHandler} />,
+                      });
+                    }}
+                  >
+                    Afkeuren
+                  </Button>
+                </>
+              )}
+              {state?.type === ExpenseState.Approved && (
+                <Button
+                  color="green"
+                  leftIcon={<IconCheck />}
+                  onClick={completeHandler}
+                >
+                  Uitvoeren
                 </Button>
-                <Button color="red" leftIcon={<IconX />}>
-                  Afkeuren
-                </Button>
-              </>
-            )}
+              )}
+            </>
+          )}
         </Group>
         {expense && (
           <Stack my="md" spacing="sm">
@@ -615,6 +706,48 @@ const Form = ({ expense, users, companies }: FormProps) => {
         </Aside>
       )}
     </div>
+  );
+};
+
+interface RejectModalProps {
+  onSubmit: (notes: string, onSuccess: () => void) => void;
+}
+
+const RejectModal = ({ onSubmit }: RejectModalProps) => {
+  const [notes, setNotes] = useState("");
+
+  return (
+    <Group align="end">
+      <Textarea
+        label="Reden"
+        autosize
+        value={notes}
+        style={{
+          flexGrow: 1,
+        }}
+        onChange={(e) => {
+          setNotes(e.target.value);
+        }}
+      />
+      <Button
+        style={{
+          flexGrow: 0,
+        }}
+        onClick={() => {
+          onSubmit(notes, () => {
+            setNotes("");
+            closeModal("reject-expense");
+            showNotification({
+              message: "Verzoek afgekeurd",
+              color: "green",
+            });
+          });
+        }}
+        leftIcon={<IconDeviceFloppy />}
+      >
+        Afkeuren
+      </Button>
+    </Group>
   );
 };
 

@@ -22,7 +22,7 @@ type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 export default function App({
   Component,
