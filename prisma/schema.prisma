@@ -50,6 +50,7 @@ model Expense {
   handler                User      @relation("HandledExpenses", fields: [handlerId], references: [id])
   handlerId              Int
   customerName           String
+  customerEmail          String
   invoiceAddress         String
   postalCode             String
   city                   String

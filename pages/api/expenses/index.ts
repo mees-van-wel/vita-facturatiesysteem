@@ -17,27 +17,47 @@ export default async function handler(
 
   const { page, take, filter, sort } = req.body;
 
-  const where = Object.keys(filter).reduce<Partial<Expense>>((object, key) => {
-    const reversed = key.split(".").reverse();
-    const values = filter[key];
+  let where: any = Object.keys(filter).reduce<Partial<Expense>>(
+    (object, key) => {
+      const reversed = key.split(".").reverse();
+      const values = filter[key];
 
-    const value = reversed.reduce(
-      (res, key, index) => ({ [key]: index === 0 ? values : res }),
-      {}
-    );
+      const value = reversed.reduce(
+        (res, key, index) => ({ [key]: index === 0 ? values : res }),
+        {}
+      );
 
-    return { ...object, ...value };
-  }, {});
+      return { ...object, ...value };
+    },
+    {}
+  );
 
-  if (session.user.role !== Role.FinancialWorker)
-    where["OR"] = [
-      {
-        createdById: { equals: session.user.id },
-      },
-      {
-        handlerId: { equals: session.user.id },
-      },
-    ];
+  switch (session.user.role) {
+    case Role.InternalEmployee:
+      where = {
+        AND: [
+          {
+            handler: {
+              role: Role.InternalConsultant,
+            },
+          },
+          where,
+        ],
+      };
+      break;
+    case Role.FinancialWorker:
+      where = where;
+      break;
+    default:
+      where = {
+        AND: [
+          {
+            handlerId: { equals: session.user.id },
+          },
+          where,
+        ],
+      };
+  }
 
   const [count, collection] = await prisma.$transaction([
     prisma.expense.count(),
@@ -64,8 +84,13 @@ export default async function handler(
     }),
   ]);
 
+  const expenses = collection.map((expense) => ({
+    ...expense,
+    isEarly: expense.passingDate.getTime() < expense.createdAt.getTime(),
+  }));
+
   return res.status(200).json({
     count,
-    collection,
+    collection: expenses,
   });
 }

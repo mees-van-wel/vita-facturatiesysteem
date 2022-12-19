@@ -32,7 +32,10 @@ export default async function userHandler(
       include: { states: true },
     });
 
-    return res.status(200).json(expense);
+    return res.status(200).json({
+      ...expense,
+      isEarly: expense.passingDate.getTime() < expense.createdAt.getTime(),
+    });
   }
 
   if (method === "PUT") {

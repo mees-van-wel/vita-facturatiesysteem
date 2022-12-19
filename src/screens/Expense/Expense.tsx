@@ -55,13 +55,13 @@ import { getChangedFields } from "../../utilities/getChangedFields.utility";
 
 export const NEW = "new";
 
-enum PaymentMethod {
+export enum PaymentMethod {
   Notary = "NOTARY",
   Invoice = "INVOICE",
   Spread = "SPREAD",
 }
 
-const PaymentMethodLabel = {
+export const PaymentMethodLabel = {
   [PaymentMethod.Notary]: "Betaling via de notaris",
   [PaymentMethod.Invoice]: "Rechtstreeks op factuurbasis",
   [PaymentMethod.Spread]: "Gespreid betalen conform OTDV",
@@ -72,12 +72,12 @@ const paymentMethodData = enumToArray(PaymentMethod).map(({ value }) => ({
   value,
 }));
 
-enum IBDeclaration {
+export enum IBDeclaration {
   No = "NO",
   Yes = "YES",
 }
 
-const IBDeclarationLabel = {
+export const IBDeclarationLabel = {
   [IBDeclaration.No]: "Nee, klant heeft geen interesse",
   [IBDeclaration.Yes]:
     "Ja, stuur klantgegevens op passeerdatum door naar partner",
@@ -144,6 +144,7 @@ interface FormProps {
 interface FormValues {
   handlerId: string;
   customerName: string;
+  customerEmail: string;
   invoiceAddress: string;
   postalCode: string;
   city: string;
@@ -201,6 +202,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
         ? session.data?.user.id.toString() ?? ""
         : "",
       customerName: expense?.customerName ?? "",
+      customerEmail: expense?.customerEmail ?? "",
       invoiceAddress: expense?.invoiceAddress ?? "",
       postalCode: expense?.postalCode ?? "",
       city: expense?.city ?? "",
@@ -242,6 +244,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
     validate: {
       handlerId: requiredValidation,
       customerName: requiredValidation,
+      customerEmail: requiredValidation,
       invoiceAddress: requiredValidation,
       postalCode: requiredValidation,
       city: requiredValidation,
@@ -515,6 +518,12 @@ const Form = ({ expense, users, companies }: FormProps) => {
           withAsterisk={!isLocked}
           label="Naam klant"
           {...form.getInputProps("customerName")}
+        />
+        <TextInput
+          readOnly={isLocked}
+          withAsterisk={!isLocked}
+          label="E-mail klant"
+          {...form.getInputProps("customerEmail")}
         />
         <TextInput
           readOnly={isLocked}

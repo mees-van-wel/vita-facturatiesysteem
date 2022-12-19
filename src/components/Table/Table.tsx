@@ -41,6 +41,7 @@ export interface TableHeader {
   label: string;
   format?: (value: any) => ReactNode;
   filterType?: FilterType;
+  show?: boolean;
 }
 
 export type TableHeaders = TableHeader[];
@@ -204,6 +205,9 @@ const DataTable = ({
   const filtering = useMemo(() => !!Object.keys(filter).length, [filter]);
 
   const exportHandler = () => {
+    // if (!data?.collection) return;
+    // const workbook = utils.book_new();
+    // utils.book_append_sheet(workbook, utils.json_to_sheet(data.collection));
     const workbook = utils.table_to_book(document.getElementById("table"), {
       sheet: title,
     });
@@ -218,8 +222,13 @@ const DataTable = ({
           <TableComponent id="table" highlightOnHover>
             <thead>
               <tr>
-                {headers.map(({ label }) => (
-                  <th key={label}>
+                {headers.map(({ label, show = true }) => (
+                  <th
+                    key={label}
+                    style={{
+                      display: !show ? "none" : undefined,
+                    }}
+                  >
                     <p
                       style={{
                         whiteSpace: "nowrap",
@@ -242,25 +251,32 @@ const DataTable = ({
                     cursor: "pointer",
                   }}
                 >
-                  {Object.values(headers).map(({ key, format }) => {
-                    let value = get(row, key);
-                    if (format) value = format(value);
-                    return (
-                      <td key={key}>
-                        <p
-                          title={value}
+                  {Object.values(headers).map(
+                    ({ key, format, show = true }) => {
+                      let value = get(row, key);
+                      if (format) value = format(value);
+                      return (
+                        <td
+                          key={key}
                           style={{
-                            maxWidth: 150,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
+                            display: !show ? "none" : undefined,
                           }}
                         >
-                          {value}
-                        </p>
-                      </td>
-                    );
-                  })}
+                          <p
+                            title={value}
+                            style={{
+                              maxWidth: 150,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {value}
+                          </p>
+                        </td>
+                      );
+                    }
+                  )}
                 </tr>
               ))}
             </tbody>
