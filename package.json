@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "deploy": "git pull && yarn install --frozen-lockfile --ignore-scripts && yarn build && pm2 reload ecosystem.config.js",
+    "deploy": "git pull && yarn install --frozen-lockfile --ignore-scripts && prisma generate && yarn build && pm2 reload ecosystem.config.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3004",
