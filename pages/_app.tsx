@@ -2,15 +2,15 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { Barlow } from "@next/font/google";
 import Head from "next/head";
-import { MantineProvider } from "@mantine/core";
+import { ColorScheme, MantineProvider } from "@mantine/core";
 import { ReactElement, ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import { NextPage } from "next";
 import { NotificationsProvider } from "@mantine/notifications";
 import { AuthenticationContextProvider } from "../src/context/AuthenticationContextProvidert";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ModalsProvider } from "@mantine/modals";
+import { useLocalStorage } from "@mantine/hooks";
 
 const inter = Barlow({ weight: "400", subsets: ["latin"] });
 
@@ -29,6 +29,10 @@ export default function App({
   pageProps: { session, ...pageProps },
 }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
+  const [colorScheme] = useLocalStorage<ColorScheme>({
+    key: "color-scheme",
+    defaultValue: "dark",
+  });
 
   return (
     <>
@@ -48,7 +52,7 @@ export default function App({
         withGlobalStyles
         withNormalizeCSS
         theme={{
-          colorScheme: "dark",
+          colorScheme,
           fontFamily: inter.style.fontFamily,
         }}
       >
@@ -58,7 +62,6 @@ export default function App({
               <AuthenticationContextProvider>
                 <QueryClientProvider client={queryClient}>
                   {getLayout(<Component {...pageProps} />)}
-                  <ReactQueryDevtools initialIsOpen={false} />
                 </QueryClientProvider>
               </AuthenticationContextProvider>
             </SessionProvider>

@@ -10,7 +10,7 @@ export const Home: NextPageWithLayout = () => {
   return (
     <div>
       <Title>Home</Title>
-      <p>{JSON.stringify(session?.user?.role)}</p>
+      <p>Goedendag {session?.user?.name}</p>
     </div>
   );
 };

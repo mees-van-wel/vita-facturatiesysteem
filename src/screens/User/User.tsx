@@ -19,11 +19,12 @@ import {
 } from "@tabler/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
 import { NextPageWithLayout } from "../../../pages/_app";
-import { role, roleLabel } from "../../enums/role.enum";
+import { Role, role, roleLabel } from "../../enums/role.enum";
 import { Route } from "../../enums/route.enum";
 import { MainLayout } from "../../layouts/Main";
 import { query } from "../../lib/query.lib";
@@ -32,6 +33,9 @@ import { NEW, requiredValidation } from "../Expense";
 export const User: NextPageWithLayout = () => {
   const router = useRouter();
   const id = router.query.id as string;
+  const session = useSession();
+
+  console.log(session.data?.user);
 
   const { data: user } = useQuery({
     ...query<UserInterface>({
@@ -56,7 +60,7 @@ interface FormValues {
 }
 
 const roleData = role.map(({ value }) => ({
-  label: roleLabel[value],
+  label: roleLabel[value as Role],
   value,
 }));
 

@@ -3,7 +3,7 @@ import { State } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { ReactElement, useEffect, useState } from "react";
 import { NextPageWithLayout } from "../../../pages/_app";
-import Table, { TableHeaders } from "../../components/Table/Table";
+import Table, { SortOption, TableHeaders } from "../../components/Table/Table";
 import {
   ExpenseState,
   expenseStateColor,
@@ -30,8 +30,12 @@ const initialTableHeaders: TableHeaders = [
     key: "states",
     label: "Status",
     format: (states: State[]) => (
-      <Badge color={expenseStateColor[states[states.length - 1].type]}>
-        {expenseStateLabel[states[states.length - 1].type]}
+      <Badge
+        color={
+          expenseStateColor[states[states.length - 1].type as ExpenseState]
+        }
+      >
+        {expenseStateLabel[states[states.length - 1].type as ExpenseState]}
       </Badge>
     ),
   },
@@ -42,7 +46,6 @@ const initialTableHeaders: TableHeaders = [
     format: (states: State[]) =>
       states.reduce((count, current) => {
         if (current.type === ExpenseState.Resubmitted) count = count + 1;
-
         return count;
       }, 0),
   },
@@ -56,6 +59,7 @@ const initialTableHeaders: TableHeaders = [
     label: "Ingediend",
     format: (date) => new Date(date).toLocaleString("nl-NL"),
     filterType: FilterType.Date,
+    sort: SortOption.Ascending,
   },
   {
     key: "completedAt",
@@ -189,6 +193,10 @@ export const Expenses: NextPageWithLayout = () => {
         route={Route.Expenses}
         dataRoute={Route.ApiExpenses}
         headers={tableHeaders}
+        canCreate={
+          session.data?.user.role !== Role.FinancialWorker &&
+          session.data?.user.role !== Role.Administrator
+        }
       />
     </div>
   );

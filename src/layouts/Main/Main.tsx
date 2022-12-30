@@ -12,6 +12,8 @@ import {
   NavLink,
   Badge,
   Group,
+  Button,
+  ColorScheme,
 } from "@mantine/core";
 import Image from "next/image";
 import Logo from "../../assets/images/vh-verticaal-master-png.png";
@@ -20,12 +22,15 @@ import {
   IconReportMoney,
   IconLogout,
   IconUsers,
+  IconMoon,
+  IconSun,
 } from "@tabler/icons";
 import Link from "next/link";
 import { Route } from "../../enums/route.enum";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/react";
 import { Role } from "../../enums/role.enum";
+import { useLocalStorage } from "@mantine/hooks";
 interface MainLayoutProps {
   children: ReactNode;
 }
@@ -35,6 +40,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [opened, setOpened] = useState(true);
+  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+    key: "color-scheme",
+    defaultValue: "dark",
+  });
 
   return (
     <AppShell
@@ -63,18 +72,16 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 active={router.pathname === Route.Home}
               />
             </Link>
-            {session.user.role !== Role.Administrator && (
-              <Link href={Route.Expenses} passHref>
-                <NavLink
-                  label="Verzoeken"
-                  icon={<IconReportMoney />}
-                  active={
-                    router.pathname === Route.Expenses ||
-                    router.pathname === Route.Expense
-                  }
-                />
-              </Link>
-            )}
+            <Link href={Route.Expenses} passHref>
+              <NavLink
+                label="Verzoeken"
+                icon={<IconReportMoney />}
+                active={
+                  router.pathname === Route.Expenses ||
+                  router.pathname === Route.Expense
+                }
+              />
+            </Link>
             {session.user.role === Role.Administrator && (
               <Link href={Route.Users} passHref>
                 <NavLink
@@ -148,6 +155,21 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                     .map((n) => n[0])
                     .join(".")}
                 </Badge>
+                <Button
+                  compact
+                  variant="outline"
+                  onClick={() => {
+                    setColorScheme((current) =>
+                      current === "dark" ? "light" : "dark"
+                    );
+                  }}
+                >
+                  {colorScheme === "dark" ? (
+                    <IconSun size={16} />
+                  ) : (
+                    <IconMoon size={16} />
+                  )}
+                </Button>
               </Group>
             )}
           </div>

@@ -55,7 +55,9 @@ export default async function userHandler(
       ...Object.keys(data.fields).reduce((object, key) => {
         const value = data.fields[key];
 
-        object[key] = value === "null" ? null : value;
+        // @ts-ignore
+        object[key] =
+          !value || value === "null" || value === "undefined" ? null : value;
 
         return object;
       }, {}),
@@ -72,6 +74,7 @@ export default async function userHandler(
           }.pdf`
         : `${file.newFilename}.pdf`;
 
+      // @ts-ignore
       update[key] = fileName;
 
       const fileData = fs.readFileSync(file.filepath);
@@ -89,12 +92,14 @@ export default async function userHandler(
       update.passingDate = new Date(data.fields.passingDate as string);
 
     if (!data.fields.states)
+      // @ts-ignore
       update.states = {
         create: {
           type: ExpenseState.Resubmitted,
         },
       };
 
+    // @ts-ignore
     if (data.fields.states?.create.type === ExpenseState.Completed)
       update.completedAt = new Date();
 
@@ -124,7 +129,9 @@ export default async function userHandler(
       ...Object.keys(data.fields).reduce((object, key) => {
         const value = data.fields[key];
 
-        object[key] = value === "null" ? null : value;
+        // @ts-ignore
+        object[key] =
+          !value || value === "null" || value === "undefined" ? null : value;
 
         return object;
       }, {}),
@@ -139,6 +146,7 @@ export default async function userHandler(
           }.pdf`
         : `${file.newFilename}.pdf`;
 
+      // @ts-ignore
       update[key] = fileName;
 
       const fileData = fs.readFileSync(file.filepath);
@@ -146,6 +154,7 @@ export default async function userHandler(
       fs.unlinkSync(file.filepath);
     });
 
+    // @ts-ignore
     update.createdBy = {
       connect: {
         id: session.user.id,
@@ -154,6 +163,7 @@ export default async function userHandler(
 
     if (data.fields.handlerId) {
       delete update.handlerId;
+      // @ts-ignore
       update.handler = {
         connect: {
           id: parseInt(data.fields.handlerId as string),
@@ -163,6 +173,7 @@ export default async function userHandler(
 
     if (data.fields.companyId) {
       delete update.companyId;
+      // @ts-ignore
       update.company = {
         connect: {
           id: parseInt(data.fields.companyId as string),
@@ -174,6 +185,7 @@ export default async function userHandler(
       update.passingDate = new Date(data.fields.passingDate as string);
 
     const expense = await prisma.expense.create({
+      // @ts-ignore
       data: {
         ...update,
         states: {

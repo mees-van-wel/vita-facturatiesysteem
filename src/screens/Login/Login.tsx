@@ -65,7 +65,7 @@ export const Login: NextPageWithLayout = () => {
           Inloggen
         </Button>
       </form>
-      <Anchor>Wachtwoord vergeten</Anchor>
+      {/* <Anchor>Wachtwoord vergeten</Anchor> */}
     </div>
   );
 };

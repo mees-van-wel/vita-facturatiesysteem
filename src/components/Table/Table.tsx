@@ -10,11 +10,12 @@ import {
   Button,
   NumberInput,
   TextInput,
+  ColorScheme,
 } from "@mantine/core";
 import { ReactNode, useMemo, useState } from "react";
 import { TableCount, tableCount } from "../../enums/tableCount.enum";
 import get from "lodash.get";
-import { useDebouncedState } from "@mantine/hooks";
+import { useDebouncedState, useLocalStorage } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { Route } from "../../enums/route.enum";
 import { query } from "../../lib/query.lib";
@@ -33,8 +34,6 @@ import { DatePicker, DateRangePicker } from "@mantine/dates";
 import { useRouter } from "next/router";
 import { utils, writeFile } from "xlsx";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { Role } from "../../enums/role.enum";
 
 export interface TableHeader {
   key: string;
@@ -42,6 +41,7 @@ export interface TableHeader {
   format?: (value: any) => ReactNode;
   filterType?: FilterType;
   show?: boolean;
+  sort?: SortOption;
 }
 
 export type TableHeaders = TableHeader[];
@@ -51,22 +51,32 @@ interface TableProps {
   dataRoute: Route;
   route: Route;
   headers: TableHeaders;
+  canCreate?: boolean;
 }
 
 type Filter = Record<string, Record<string, any>>;
 
-enum SortOption {
+export enum SortOption {
   Ascending = "asc",
   Descending = "desc",
 }
 
 type Sort = Record<string, SortOption>;
 
-const Table = ({ title, route, dataRoute, headers }: TableProps) => {
-  const session = useSession();
+const Table = ({
+  title,
+  route,
+  dataRoute,
+  headers,
+  canCreate = true,
+}: TableProps) => {
   const [showFilter, setShowFilter] = useState(false);
   const [filter, setFilter] = useDebouncedState<Filter>({}, 250);
   const [sort, setSort] = useState<Sort>({});
+  const [colorScheme] = useLocalStorage<ColorScheme>({
+    key: "color-scheme",
+    defaultValue: "dark",
+  });
 
   const filterHandler = (key: string) => (value: Record<string, any>) => {
     const clone = { ...filter };
@@ -96,7 +106,7 @@ const Table = ({ title, route, dataRoute, headers }: TableProps) => {
     <div>
       <Group mb="md">
         <Title>{title}</Title>
-        {session.data?.user.role !== Role.FinancialWorker && (
+        {canCreate && (
           <Link href={`${route}/new`}>
             <Button leftIcon={<IconPlus />}>Nieuw</Button>
           </Link>
@@ -127,7 +137,8 @@ const Table = ({ title, route, dataRoute, headers }: TableProps) => {
           transition: "transform 250ms",
           transform: !showFilter ? "translateX(400px)" : undefined,
           right: 0,
-          backgroundColor: "#1A1B1E",
+          backgroundColor: colorScheme === "dark" ? "#1A1B1E" : "white",
+          boxShadow: "-10px 0px 25px -4px rgba(0,0,0,0.5)",
           padding: 16,
           width: 400,
         }}

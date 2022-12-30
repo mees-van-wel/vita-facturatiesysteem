@@ -46,6 +46,7 @@ export default async function handler(
       };
       break;
     case Role.FinancialWorker:
+    case Role.Administrator:
       where = where;
       break;
     default:

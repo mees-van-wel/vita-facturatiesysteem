@@ -10,9 +10,9 @@ export const authOptions: NextAuthOptions = {
         email: { label: "E-mail", type: "email", required: true },
         password: { label: "Wachtwoord", type: "password", required: true },
       },
-      authorize: async (credentials, req) => {
+      authorize: async (credentials) => {
         const res = await axios.post(
-          "http://localhost:3000/api/authorize",
+          `${process.env.NEXTAUTH_URL}/api/authorize`,
           credentials
         );
 

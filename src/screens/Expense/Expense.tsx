@@ -68,7 +68,7 @@ export const PaymentMethodLabel = {
 };
 
 const paymentMethodData = enumToArray(PaymentMethod).map(({ value }) => ({
-  label: PaymentMethodLabel[value],
+  label: PaymentMethodLabel[value as PaymentMethod],
   value,
 }));
 
@@ -84,7 +84,7 @@ export const IBDeclarationLabel = {
 };
 
 const IBDeclarationData = enumToArray(IBDeclaration).map(({ value }) => ({
-  label: IBDeclarationLabel[value as keyof IBDeclaration],
+  label: IBDeclarationLabel[value as IBDeclaration],
   value,
 }));
 
@@ -292,6 +292,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
 
     const formData = new FormData();
     Object.keys(formValues).forEach((key) => {
+      // @ts-ignore
       formData.append(key, formValues[key]);
     });
 
@@ -369,6 +370,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const approveHandler = () => {
     updateExpense.mutate(
       {
+        // @ts-ignore
         states: {
           create: {
             type: ExpenseState.Approved,
@@ -389,6 +391,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const rejectHandler = (notes: string, onSuccess: () => void) => {
     updateExpense.mutate(
       {
+        // @ts-ignore
         states: {
           create: {
             type: ExpenseState.Rejected,
@@ -411,6 +414,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const completeHandler = () => {
     updateExpense.mutate(
       {
+        // @ts-ignore
         states: {
           create: {
             type: ExpenseState.Completed,
@@ -441,7 +445,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
               leftIcon={expense ? <IconDeviceFloppy /> : <IconSend />}
               type="submit"
             >
-              {expense ? "Opslaan" : "Indienen"}
+              {expense ? "Opnieuw indienen" : "Indienen"}
             </Button>
           )}
           {session.data?.user.role === Role.FinancialWorker && (
@@ -697,9 +701,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
             {expense.states.map((state) => (
               <Timeline.Item
                 bullet
-                color={expenseStateColor[state.type]}
+                color={expenseStateColor[state.type as ExpenseState]}
                 key={state.id}
-                title={expenseStateLabel[state.type]}
+                title={expenseStateLabel[state.type as ExpenseState]}
               >
                 {state.notes && (
                   <Text color="dimmed" size="sm">
