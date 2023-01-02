@@ -25,7 +25,7 @@ export default async function handler(
 
   // console.log(usera);
 
-  const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email } });
 
   if (!!user && (await argon2.verify(user.password, password)))
     return res.status(200).json(user);
