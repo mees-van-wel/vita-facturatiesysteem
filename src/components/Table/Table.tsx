@@ -34,6 +34,7 @@ import { DatePicker, DateRangePicker } from "@mantine/dates";
 import { useRouter } from "next/router";
 import { utils, writeFile } from "xlsx";
 import Link from "next/link";
+import "dayjs/locale/nl";
 
 export interface TableHeader {
   key: string;
@@ -463,6 +464,7 @@ const FilterInput = ({
           />
         ) : (
           <DatePicker
+            locale="nl"
             style={{
               flex: 1,
             }}

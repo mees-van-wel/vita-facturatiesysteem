@@ -52,6 +52,7 @@ import { ApiCollectionResponse } from "../../interfaces/apiCollectionResponse.in
 import { MainLayout } from "../../layouts/Main";
 import { query } from "../../lib/query.lib";
 import { getChangedFields } from "../../utilities/getChangedFields.utility";
+import "dayjs/locale/nl";
 
 export const NEW = "new";
 
@@ -556,6 +557,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
           </p>
         ) : (
           <DatePicker
+            locale="nl"
             withAsterisk={!isLocked}
             label="Passeerdatum"
             {...form.getInputProps("passingDate")}
