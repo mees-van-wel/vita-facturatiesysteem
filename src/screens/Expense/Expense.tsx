@@ -557,6 +557,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
           </p>
         ) : (
           <DatePicker
+            inputFormat="DD-MM-YYYY"
             locale="nl"
             withAsterisk={!isLocked}
             label="Passeerdatum"

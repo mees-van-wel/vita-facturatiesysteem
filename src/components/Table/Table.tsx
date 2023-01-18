@@ -464,6 +464,7 @@ const FilterInput = ({
           />
         ) : (
           <DatePicker
+            inputFormat="DD-MM-YYYY"
             locale="nl"
             style={{
               flex: 1,
