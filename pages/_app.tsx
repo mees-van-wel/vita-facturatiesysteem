@@ -47,6 +47,10 @@ export default function App({
         body {
           font-family: ${inter.style.fontFamily};
         }
+
+        p {
+          font-size: 16px;
+        }
       `}</style>
       <MantineProvider
         withGlobalStyles

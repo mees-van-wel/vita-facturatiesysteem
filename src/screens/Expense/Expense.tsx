@@ -492,13 +492,13 @@ const Form = ({ expense, users, companies }: FormProps) => {
           <Stack my="md" spacing="sm">
             <Text>
               Ingediend:{" "}
-              <Badge>
+              <Badge size="lg">
                 {new Date(expense.createdAt).toLocaleString("nl-NL")}
               </Badge>
             </Text>
             <Text>
               Gefactureerd:{" "}
-              <Badge>
+              <Badge size="lg">
                 {expense.completedAt
                   ? new Date(expense.completedAt).toLocaleString("nl-NL")
                   : "Nog niet"}
@@ -548,22 +548,14 @@ const Form = ({ expense, users, companies }: FormProps) => {
           label="Stad"
           {...form.getInputProps("city")}
         />
-        {isLocked && expense?.passingDate ? (
-          <p>
-            Passeerdatum:{" "}
-            <Badge>
-              {new Date(expense.passingDate).toLocaleDateString("nl-NL")}
-            </Badge>
-          </p>
-        ) : (
-          <DatePicker
-            inputFormat="DD-MM-YYYY"
-            locale="nl"
-            withAsterisk={!isLocked}
-            label="Passeerdatum"
-            {...form.getInputProps("passingDate")}
-          />
-        )}
+        <DatePicker
+          readOnly={isLocked}
+          inputFormat="DD-MM-YYYY"
+          locale="nl"
+          withAsterisk={!isLocked}
+          label="Passeerdatum"
+          {...form.getInputProps("passingDate")}
+        />
         <TextInput
           readOnly={isLocked}
           withAsterisk={!isLocked}

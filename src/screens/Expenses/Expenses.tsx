@@ -31,6 +31,7 @@ const initialTableHeaders: TableHeaders = [
     label: "Status",
     format: (states: State[]) => (
       <Badge
+        size="lg"
         color={
           expenseStateColor[states[states.length - 1].type as ExpenseState]
         }
@@ -52,7 +53,9 @@ const initialTableHeaders: TableHeaders = [
   {
     key: "isEarly",
     label: "Te laat",
-    format: (isEarly: boolean) => <Badge>{isEarly ? "Ja" : "Nee"}</Badge>,
+    format: (isEarly: boolean) => (
+      <Badge size="lg">{isEarly ? "Ja" : "Nee"}</Badge>
+    ),
   },
   {
     key: "createdAt",
