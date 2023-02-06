@@ -78,7 +78,7 @@ export default async function userHandler(
       update[key] = fileName;
 
       const fileData = fs.readFileSync(file.filepath);
-      fs.writeFileSync(`public/upload/${fileName}`, fileData);
+      fs.writeFileSync(`src/uploads/${fileName}`, fileData);
       fs.unlinkSync(file.filepath);
     });
 
@@ -150,7 +150,7 @@ export default async function userHandler(
       update[key] = fileName;
 
       const fileData = fs.readFileSync(file.filepath);
-      fs.writeFileSync(`public/uploads/${fileName}`, fileData);
+      fs.writeFileSync(`src/uploads/${fileName}`, fileData);
       fs.unlinkSync(file.filepath);
     });
 

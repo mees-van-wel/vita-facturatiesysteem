@@ -628,12 +628,18 @@ const Form = ({ expense, users, companies }: FormProps) => {
         ) : (
           <Group mt="md" mb="xs">
             {expense?.signedOTDV && (
-              <Link href={`/uploads/${expense.signedOTDV}`} target="_blank">
+              <Link
+                href={`/api/pdf?fileName=${expense.signedOTDV}`}
+                target="_blank"
+              >
                 <Button leftIcon={<IconFileText />}>Ondertekende OTDV</Button>
               </Link>
             )}
             {expense?.zzpInvoice && (
-              <Link href={`/uploads/${expense.zzpInvoice}`} target="_blank">
+              <Link
+                href={`/api/pdf?fileName=${expense.zzpInvoice}`}
+                target="_blank"
+              >
                 <Button leftIcon={<IconFileText />}>Factuur ZZP-er</Button>
               </Link>
             )}
@@ -667,7 +673,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
             expense?.spreadPaymentAgreement && (
               <Group mt="md" mb="xs">
                 <Link
-                  href={`/uploads/${expense.spreadPaymentAgreement}`}
+                  href={`/api/pdf?fileName=${expense.spreadPaymentAgreement}`}
                   target="_blank"
                 >
                   <Button leftIcon={<IconFileText />}>
