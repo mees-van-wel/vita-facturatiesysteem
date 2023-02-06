@@ -144,8 +144,16 @@ interface FormProps {
 
 interface FormValues {
   handlerId: string;
-  customerName: string;
+  customerSalutation: string;
+  customerInitials: string;
+  customerPrefix: string;
+  customerLastName: string;
   customerEmail: string;
+  secondCustomerSalutation: string;
+  secondCustomerInitials: string;
+  secondCustomerPrefix: string;
+  secondCustomerLastName: string;
+  secondCustomerEmail: string;
   invoiceAddress: string;
   postalCode: string;
   city: string;
@@ -202,8 +210,16 @@ const Form = ({ expense, users, companies }: FormProps) => {
         : session.data?.user.role !== Role.InternalEmployee
         ? session.data?.user.id.toString() ?? ""
         : "",
-      customerName: expense?.customerName ?? "",
+      customerSalutation: expense?.customerSalutation ?? "",
+      customerInitials: expense?.customerInitials ?? "",
+      customerPrefix: expense?.customerPrefix ?? "",
+      customerLastName: expense?.customerLastName ?? "",
       customerEmail: expense?.customerEmail ?? "",
+      secondCustomerSalutation: expense?.secondCustomerSalutation ?? "",
+      secondCustomerInitials: expense?.secondCustomerInitials ?? "",
+      secondCustomerPrefix: expense?.secondCustomerPrefix ?? "",
+      secondCustomerLastName: expense?.secondCustomerLastName ?? "",
+      secondCustomerEmail: expense?.secondCustomerEmail ?? "",
       invoiceAddress: expense?.invoiceAddress ?? "",
       postalCode: expense?.postalCode ?? "",
       city: expense?.city ?? "",
@@ -244,7 +260,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
     initialValues: initialValues,
     validate: {
       handlerId: requiredValidation,
-      customerName: requiredValidation,
+      customerSalutation: requiredValidation,
+      customerInitials: requiredValidation,
+      customerLastName: requiredValidation,
       customerEmail: requiredValidation,
       invoiceAddress: requiredValidation,
       postalCode: requiredValidation,
@@ -255,9 +273,6 @@ const Form = ({ expense, users, companies }: FormProps) => {
       objectAddress: requiredValidation,
       objectPostalCode: requiredValidation,
       objectCity: requiredValidation,
-      // mortgageInvoiceAmount: requiredValidation,
-      // insuranceInvoiceAmount: requiredValidation,
-      // otherInvoiceAmount: requiredValidation,
       signedOTDV: fileValidation,
       zzpInvoice:
         session.data?.user.role === Role.ExternalConsultant
@@ -433,6 +448,8 @@ const Form = ({ expense, users, companies }: FormProps) => {
     );
   };
 
+  console.log(handlerSelectData);
+
   return (
     <div>
       <form onSubmit={form.onSubmit(submitHandler)}>
@@ -506,48 +523,126 @@ const Form = ({ expense, users, companies }: FormProps) => {
             </Text>
           </Stack>
         )}
-        <Select
-          searchable
-          readOnly={
-            isLocked || session.data?.user.role !== Role.InternalEmployee
-          }
-          withAsterisk={
-            !isLocked && session.data?.user.role === Role.InternalEmployee
-          }
-          data={handlerSelectData}
-          label="Behandelaar"
-          {...form.getInputProps("handlerId")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Naam klant"
-          {...form.getInputProps("customerName")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="E-mail klant"
-          {...form.getInputProps("customerEmail")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Factuuradres"
-          {...form.getInputProps("invoiceAddress")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Postcode"
-          {...form.getInputProps("postalCode")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Stad"
-          {...form.getInputProps("city")}
-        />
+        {(session.data?.user.role === Role.InternalEmployee ||
+          session.data?.user.role === Role.FinancialWorker ||
+          session.data?.user.role === Role.Administrator) && (
+          <Select
+            searchable
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            data={handlerSelectData}
+            label="Behandelaar"
+            {...form.getInputProps("handlerId")}
+          />
+        )}
+        <Group grow>
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Aanhef klant"
+            {...form.getInputProps("customerSalutation")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Voorletters klant"
+            {...form.getInputProps("customerInitials")}
+            onChange={(e) => {
+              if (e.target.value.length > form.values.customerInitials.length) {
+                const array = e.target.value.trim().split("");
+                const value = array.reduce((string, current, index) => {
+                  if (current === "." || array[index + 1] === ".")
+                    return (string += current);
+
+                  return (string += `${current}.`);
+                }, "");
+
+                form.setFieldValue("customerInitials", value);
+              } else form.setFieldValue("customerInitials", e.target.value);
+            }}
+          />
+          <TextInput
+            readOnly={isLocked}
+            label="Tussenvoegsel klant"
+            {...form.getInputProps("customerPrefix")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Achternaam klant"
+            {...form.getInputProps("customerLastName")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="E-mail klant"
+            {...form.getInputProps("customerEmail")}
+          />
+        </Group>
+        <Group grow>
+          <TextInput
+            readOnly={isLocked}
+            label="Aanhef 2e klant"
+            {...form.getInputProps("secondCustomerSalutation")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            label="Voorletters 2e klant"
+            {...form.getInputProps("secondCustomerInitials")}
+            onChange={(e) => {
+              if (
+                e.target.value.length >
+                form.values.secondCustomerInitials.length
+              ) {
+                const array = e.target.value.trim().split("");
+                const value = array.reduce((string, current, index) => {
+                  if (current === "." || array[index + 1] === ".")
+                    return (string += current);
+
+                  return (string += `${current}.`);
+                }, "");
+
+                form.setFieldValue("secondCustomerInitials", value);
+              } else
+                form.setFieldValue("secondCustomerInitials", e.target.value);
+            }}
+          />
+          <TextInput
+            readOnly={isLocked}
+            label="Tussenvoegsel 2e klant"
+            {...form.getInputProps("secondCustomerPrefix")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            label="Achternaam 2e klant"
+            {...form.getInputProps("secondCustomerLastName")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            label="E-mail 2e klant"
+            {...form.getInputProps("secondCustomerEmail")}
+          />
+        </Group>
+        <Group grow>
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Factuuradres"
+            {...form.getInputProps("invoiceAddress")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Postcode"
+            {...form.getInputProps("postalCode")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Stad"
+            {...form.getInputProps("city")}
+          />
+        </Group>
         <DatePicker
           readOnly={isLocked}
           inputFormat="DD-MM-YYYY"
@@ -570,42 +665,46 @@ const Form = ({ expense, users, companies }: FormProps) => {
           data={companieSelectData}
           {...form.getInputProps("companyId")}
         />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Adres object"
-          {...form.getInputProps("objectAddress")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Postcode object"
-          {...form.getInputProps("objectPostalCode")}
-        />
-        <TextInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Stad object"
-          {...form.getInputProps("objectCity")}
-        />
-        <MoneyInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Bedrag hypotheek"
-          {...form.getInputProps("mortgageInvoiceAmount")}
-        />
-        <MoneyInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Bedrag verzekering"
-          {...form.getInputProps("insuranceInvoiceAmount")}
-        />
-        <MoneyInput
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Bedrag overige"
-          {...form.getInputProps("otherInvoiceAmount")}
-        />
+        <Group grow>
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Adres object"
+            {...form.getInputProps("objectAddress")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Postcode object"
+            {...form.getInputProps("objectPostalCode")}
+          />
+          <TextInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Stad object"
+            {...form.getInputProps("objectCity")}
+          />
+        </Group>
+        <Group grow>
+          <MoneyInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Bedrag hypotheek"
+            {...form.getInputProps("mortgageInvoiceAmount")}
+          />
+          <MoneyInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Bedrag verzekering"
+            {...form.getInputProps("insuranceInvoiceAmount")}
+          />
+          <MoneyInput
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Bedrag overige"
+            {...form.getInputProps("otherInvoiceAmount")}
+          />
+        </Group>
         {!isLocked ? (
           <>
             <FileInput

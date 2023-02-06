@@ -72,14 +72,54 @@ const initialTableHeaders: TableHeaders = [
     filterType: FilterType.Date,
   },
   {
-    key: "customerName",
-    label: "Naam klant",
+    show: false,
+    key: "customerSalutation",
+    label: "Aanhef klant",
+  },
+  {
+    show: false,
+    key: "customerInitials",
+    label: "Voorletters klant",
+  },
+  {
+    show: false,
+    key: "customerPrefix",
+    label: "Tussenvoegsel klant",
+  },
+  {
+    key: "customerLastName",
+    label: "Achternaam klant",
     filterType: FilterType.String,
   },
   {
     key: "customerEmail",
     label: "E-mail klant",
     filterType: FilterType.String,
+  },
+  {
+    show: false,
+    key: "secondCustomerSalutation",
+    label: "Aanhef 2e klant",
+  },
+  {
+    show: false,
+    key: "secondCustomerInitials",
+    label: "Voorletters 2e klant",
+  },
+  {
+    show: false,
+    key: "secondCustomerPrefix",
+    label: "Tussenvoegsel 2e klant",
+  },
+  {
+    show: false,
+    key: "secondCustomerLastName",
+    label: "Achternaam 2e klant",
+  },
+  {
+    show: false,
+    key: "secondCustomerEmail",
+    label: "E-mail 2e klant",
   },
   {
     show: false,
@@ -178,7 +218,11 @@ export const Expenses: NextPageWithLayout = () => {
   const session = useSession();
 
   useEffect(() => {
-    if (session.data?.user.role === Role.FinancialWorker)
+    if (
+      session.data?.user.role === Role.InternalEmployee ||
+      session.data?.user.role === Role.FinancialWorker ||
+      session.data?.user.role === Role.Administrator
+    )
       setTableHeaders([
         ...tableHeaders,
         {

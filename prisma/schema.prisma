@@ -40,34 +40,42 @@ model State {
 }
 
 model Expense {
-  id                     Int       @id @default(autoincrement())
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @default(now()) @updatedAt
-  completedAt            DateTime?
-  states                 State[]
-  createdBy              User      @relation("CreatedExpenses", fields: [createdById], references: [id])
-  createdById            Int
-  handler                User      @relation("HandledExpenses", fields: [handlerId], references: [id])
-  handlerId              Int
-  customerName           String
-  customerEmail          String
-  invoiceAddress         String
-  postalCode             String
-  city                   String
-  passingDate            DateTime
-  notaryName             String
-  company                Company   @relation(fields: [companyId], references: [id])
-  companyId              Int
-  objectAddress          String
-  objectPostalCode       String
-  objectCity             String
-  mortgageInvoiceAmount  Decimal?
-  insuranceInvoiceAmount Decimal?
-  otherInvoiceAmount     Decimal?
-  signedOTDV             String
-  zzpInvoice             String?
-  paymentMethod          String
-  spreadPaymentAgreement String?
-  notes                  String?
-  IBDeclaration          String
+  id                       Int       @id @default(autoincrement())
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @default(now()) @updatedAt
+  completedAt              DateTime?
+  states                   State[]
+  createdBy                User      @relation("CreatedExpenses", fields: [createdById], references: [id])
+  createdById              Int
+  handler                  User      @relation("HandledExpenses", fields: [handlerId], references: [id])
+  handlerId                Int
+  customerSalutation       String
+  customerInitials         String
+  customerPrefix           String
+  customerLastName         String
+  customerEmail            String
+  secondCustomerSalutation String
+  secondCustomerInitials   String
+  secondCustomerPrefix     String
+  secondCustomerLastName   String
+  secondCustomerEmail      String
+  invoiceAddress           String
+  postalCode               String
+  city                     String
+  passingDate              DateTime
+  notaryName               String
+  company                  Company   @relation(fields: [companyId], references: [id])
+  companyId                Int
+  objectAddress            String
+  objectPostalCode         String
+  objectCity               String
+  mortgageInvoiceAmount    Decimal?
+  insuranceInvoiceAmount   Decimal?
+  otherInvoiceAmount       Decimal?
+  signedOTDV               String
+  zzpInvoice               String?
+  paymentMethod            String
+  spreadPaymentAgreement   String?
+  notes                    String?
+  IBDeclaration            String
 }
