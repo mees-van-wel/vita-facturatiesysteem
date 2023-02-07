@@ -22,7 +22,7 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useState } from "react";
 import { NextPageWithLayout } from "../../../pages/_app";
 import { Role, role, roleLabel } from "../../enums/role.enum";
 import { Route } from "../../enums/route.enum";
@@ -34,8 +34,6 @@ export const User: NextPageWithLayout = () => {
   const router = useRouter();
   const id = router.query.id as string;
   const session = useSession();
-
-  console.log(session.data?.user);
 
   const { data: user } = useQuery({
     ...query<UserInterface>({

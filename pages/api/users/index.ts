@@ -1,7 +1,5 @@
-import { hash } from "argon2";
 import { NextApiResponse, NextApiRequest } from "next";
 import { unstable_getServerSession } from "next-auth";
-import { Role } from "../../../src/enums/role.enum";
 import { prisma } from "../../../src/lib/prisma.lib";
 import { authOptions } from "./../auth/[...nextauth]";
 

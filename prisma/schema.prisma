@@ -51,14 +51,14 @@ model Expense {
   handlerId                Int
   customerSalutation       String
   customerInitials         String
-  customerPrefix           String
+  customerPrefix           String?
   customerLastName         String
   customerEmail            String
-  secondCustomerSalutation String
-  secondCustomerInitials   String
-  secondCustomerPrefix     String
-  secondCustomerLastName   String
-  secondCustomerEmail      String
+  secondCustomerSalutation String?
+  secondCustomerInitials   String?
+  secondCustomerPrefix     String?
+  secondCustomerLastName   String?
+  secondCustomerEmail      String?
   invoiceAddress           String
   postalCode               String
   city                     String

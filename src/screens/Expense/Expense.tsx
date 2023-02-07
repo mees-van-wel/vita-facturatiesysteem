@@ -448,8 +448,6 @@ const Form = ({ expense, users, companies }: FormProps) => {
     );
   };
 
-  console.log(handlerSelectData);
-
   return (
     <div>
       <form onSubmit={form.onSubmit(submitHandler)}>
@@ -552,9 +550,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
                 const array = e.target.value.trim().split("");
                 const value = array.reduce((string, current, index) => {
                   if (current === "." || array[index + 1] === ".")
-                    return (string += current);
+                    return (string += current.toUpperCase());
 
-                  return (string += `${current}.`);
+                  return (string += `${current.toUpperCase()}.`);
                 }, "");
 
                 form.setFieldValue("customerInitials", value);
@@ -597,9 +595,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
                 const array = e.target.value.trim().split("");
                 const value = array.reduce((string, current, index) => {
                   if (current === "." || array[index + 1] === ".")
-                    return (string += current);
+                    return (string += current.toUpperCase());
 
-                  return (string += `${current}.`);
+                  return (string += `${current.toUpperCase()}.`);
                 }, "");
 
                 form.setFieldValue("secondCustomerInitials", value);
