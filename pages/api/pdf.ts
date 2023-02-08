@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
-import fs from "fs";
+import { open } from "node:fs/promises";
 
 export default async function pdfHandler(
   req: NextApiRequest,
@@ -23,14 +23,15 @@ export default async function pdfHandler(
   if (!session) return res.status(401).send("Je moet ingelogd zijn");
 
   try {
-    const file = fs.createReadStream(`src/uploads/${fileName}`);
-    const stat = fs.statSync(`src/uploads/${fileName}`);
+    const file = await open(`src/uploads/${fileName}`);
+    const stat = await file.stat();
+    const readStream = file.createReadStream();
 
     res.setHeader("Content-Length", stat.size);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename=${fileName}`);
 
-    file.pipe(res);
+    readStream.pipe(res);
   } catch (error) {
     return res.status(404).send("Dit bestand kan niet worden gevonden.");
   }
