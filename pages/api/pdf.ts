@@ -22,12 +22,16 @@ export default async function pdfHandler(
   const session = await unstable_getServerSession(req, res, authOptions);
   if (!session) return res.status(401).send("Je moet ingelogd zijn");
 
-  const file = fs.createReadStream(`src/uploads/${fileName}`);
-  const stat = fs.statSync(`src/uploads/${fileName}`);
+  try {
+    const file = fs.createReadStream(`src/uploads/${fileName}`);
+    const stat = fs.statSync(`src/uploads/${fileName}`);
 
-  res.setHeader("Content-Length", stat.size);
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `inline; filename=${fileName}`);
+    res.setHeader("Content-Length", stat.size);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename=${fileName}`);
 
-  file.pipe(res);
+    file.pipe(res);
+  } catch (error) {
+    return res.status(404).send("Dit bestand kan niet worden gevonden.");
+  }
 }
