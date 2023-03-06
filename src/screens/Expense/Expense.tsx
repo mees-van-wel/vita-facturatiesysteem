@@ -38,7 +38,7 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactElement, useMemo, useState } from "react";
+import { ReactElement, useEffect, useMemo, useState } from "react";
 import { queryClient } from "../../../pages/_app";
 import { MoneyInput } from "../../components/MoneyInput";
 import {
@@ -271,7 +271,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
       invoiceAddress: requiredValidation,
       postalCode: requiredValidation,
       city: requiredValidation,
-      passingDate: passingDateOptional ? requiredValidation : undefined,
+      passingDate: !passingDateOptional ? requiredValidation : undefined,
       notaryName: requiredValidation,
       companyId: requiredValidation,
       objectAddress: requiredValidation,
@@ -291,6 +291,10 @@ const Form = ({ expense, users, companies }: FormProps) => {
     },
   });
 
+  useEffect(() => {
+    setPassingDateOptional(!form.values.passingDate);
+  }, []);
+
   const lastState = useMemo(
     () => expense?.states[expense.states.length - 1],
     [expense?.states]
@@ -301,14 +305,12 @@ const Form = ({ expense, users, companies }: FormProps) => {
     [expense]
   );
 
-  // const isLocked = useMemo(
-  //   () =>
-  //     session.data?.user.role === Role.FinancialWorker ||
-  //     (lastState?.type && lastState.type !== ExpenseState.Rejected),
-  //   [lastState?.type, session.data?.user.role]
-  // );
-
-  const isLocked = false;
+  const isLocked = useMemo(
+    () =>
+      session.data?.user.role === Role.FinancialWorker ||
+      (lastState?.type && lastState.type !== ExpenseState.Rejected),
+    [lastState?.type, session.data?.user.role]
+  );
 
   const handlerSelectData = useMemo(
     () =>
@@ -666,6 +668,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
           />
           <Checkbox
             mt={30}
+            disabled={!!isLocked}
             checked={passingDateOptional}
             label="N.V.T."
             onChange={(e) => {
@@ -691,6 +694,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
           />
           <Checkbox
             mt={30}
+            disabled={!!isLocked}
             checked={form.values.starterLoan}
             label="SVn Starterslening"
             onChange={(e) => {

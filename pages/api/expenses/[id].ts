@@ -90,6 +90,10 @@ export default async function userHandler(
     if (data.fields.companyId)
       update.companyId = parseInt(data.fields.companyId as string);
 
+    if (update.starterLoan)
+      // @ts-ignore
+      update.starterLoan = JSON.parse(data.fields.starterLoan);
+
     if (data.fields.passingDate)
       update.passingDate = new Date(data.fields.passingDate as string);
 
@@ -131,9 +135,9 @@ export default async function userHandler(
       ...Object.keys(data.fields).reduce((object, key) => {
         const value = data.fields[key];
 
-        // @ts-ignore
-        object[key] =
-          !value || value === "null" || value === "undefined" ? null : value;
+        if (!!value && value !== "null" && value !== "undefined")
+          // @ts-ignore
+          object[key] = value;
 
         return object;
       }, {}),
@@ -182,6 +186,10 @@ export default async function userHandler(
         },
       };
     }
+
+    if (update.starterLoan)
+      // @ts-ignore
+      update.starterLoan = JSON.parse(data.fields.starterLoan);
 
     if (data.fields.passingDate)
       update.passingDate = new Date(data.fields.passingDate as string);
