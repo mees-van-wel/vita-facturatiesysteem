@@ -1,6 +1,6 @@
 import { Expense } from "@prisma/client";
 import { NextApiResponse, NextApiRequest } from "next";
-import { unstable_getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 import { Role } from "../../../src/enums/role.enum";
 import { prisma } from "../../../src/lib/prisma.lib";
 import { authOptions } from "./../auth/[...nextauth]";
@@ -12,10 +12,13 @@ export default async function handler(
   if (req.method !== "POST")
     return res.status(405).send("Only POST requests allowed");
 
-  const session = await unstable_getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, authOptions);
   if (!session) return res.status(401).send("Je moet ingelogd zijn");
 
   const { page, take, filter, sort } = req.body;
+
+  const statesFilter = filter.states;
+  delete filter.states;
 
   let where: any = Object.keys(filter).reduce<Partial<Expense>>(
     (object, key) => {
@@ -85,10 +88,18 @@ export default async function handler(
     }),
   ]);
 
-  const expenses = collection.map((expense) => ({
-    ...expense,
-    isEarly: expense.passingDate.getTime() < expense.createdAt.getTime(),
-  }));
+  const expenses = collection
+    .filter(({ states }) =>
+      statesFilter
+        ? statesFilter.includes(states[states.length - 1].type)
+        : true
+    )
+    .map((expense) => ({
+      ...expense,
+      isEarly: expense.passingDate
+        ? expense.passingDate.getTime() < expense.createdAt.getTime()
+        : undefined,
+    }));
 
   return res.status(200).json({
     count,

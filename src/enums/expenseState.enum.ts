@@ -1,4 +1,4 @@
-export const enum ExpenseState {
+export enum ExpenseState {
   Submitted = "SUBMITTED",
   Approved = "APPOVED",
   Rejected = "REJECTED",

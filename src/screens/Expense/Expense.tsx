@@ -12,6 +12,7 @@ import {
   Timeline,
   Badge,
   Stack,
+  Checkbox,
 } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
@@ -160,6 +161,7 @@ interface FormValues {
   passingDate: Date | null;
   notaryName: string;
   companyId: string;
+  starterLoan: boolean;
   objectAddress: string;
   objectPostalCode: string;
   objectCity: string;
@@ -184,6 +186,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const session = useSession();
   const router = useRouter();
   const id = router.query.id as string;
+  const [passingDateOptional, setPassingDateOptional] = useState(false);
 
   const createExpense = useMutation({
     mutationFn: (params: FormData) =>
@@ -226,6 +229,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
       passingDate: expense?.passingDate ? new Date(expense.passingDate) : null,
       notaryName: expense?.notaryName ?? "",
       companyId: expense?.companyId.toString() ?? "",
+      starterLoan: expense?.starterLoan ?? false,
       objectAddress: expense?.objectAddress ?? "",
       objectPostalCode: expense?.objectPostalCode ?? "",
       objectCity: expense?.objectCity ?? "",
@@ -267,7 +271,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
       invoiceAddress: requiredValidation,
       postalCode: requiredValidation,
       city: requiredValidation,
-      passingDate: requiredValidation,
+      passingDate: passingDateOptional ? requiredValidation : undefined,
       notaryName: requiredValidation,
       companyId: requiredValidation,
       objectAddress: requiredValidation,
@@ -287,12 +291,33 @@ const Form = ({ expense, users, companies }: FormProps) => {
     },
   });
 
+  const lastState = useMemo(
+    () => expense?.states[expense.states.length - 1],
+    [expense?.states]
+  );
+
+  const state = useMemo(
+    () => (expense ? expense.states[expense.states.length - 1] : undefined),
+    [expense]
+  );
+
+  // const isLocked = useMemo(
+  //   () =>
+  //     session.data?.user.role === Role.FinancialWorker ||
+  //     (lastState?.type && lastState.type !== ExpenseState.Rejected),
+  //   [lastState?.type, session.data?.user.role]
+  // );
+
+  const isLocked = false;
+
   const handlerSelectData = useMemo(
     () =>
       users
-        .filter(({ role }) => role === Role.InternalConsultant)
+        .filter(({ role }) =>
+          isLocked ? true : role === Role.InternalConsultant
+        )
         .map(({ name, id }) => ({ label: name, value: id.toString() })),
-    [users]
+    [isLocked, users]
   );
 
   const companieSelectData = useMemo(
@@ -365,23 +390,6 @@ const Form = ({ expense, users, companies }: FormProps) => {
         },
       });
   };
-
-  const lastState = useMemo(
-    () => expense?.states[expense.states.length - 1],
-    [expense?.states]
-  );
-
-  const isLocked = useMemo(
-    () =>
-      session.data?.user.role === Role.FinancialWorker ||
-      (lastState?.type && lastState.type !== ExpenseState.Rejected),
-    [lastState?.type, session.data?.user.role]
-  );
-
-  const state = useMemo(
-    () => (expense ? expense.states[expense.states.length - 1] : undefined),
-    [expense]
-  );
 
   const approveHandler = () => {
     updateExpense.mutate(
@@ -534,7 +542,8 @@ const Form = ({ expense, users, companies }: FormProps) => {
           />
         )}
         <Group grow>
-          <TextInput
+          <Select
+            data={["De heer", "Mevrouw"]}
             readOnly={isLocked}
             withAsterisk={!isLocked}
             label="Aanhef klant"
@@ -578,7 +587,8 @@ const Form = ({ expense, users, companies }: FormProps) => {
           />
         </Group>
         <Group grow>
-          <TextInput
+          <Select
+            data={["De heer", "Mevrouw"]}
             readOnly={isLocked}
             label="Aanhef 2e klant"
             {...form.getInputProps("secondCustomerSalutation")}
@@ -641,28 +651,53 @@ const Form = ({ expense, users, companies }: FormProps) => {
             {...form.getInputProps("city")}
           />
         </Group>
-        <DatePicker
-          readOnly={isLocked}
-          inputFormat="DD-MM-YYYY"
-          locale="nl"
-          withAsterisk={!isLocked}
-          label="Passeerdatum"
-          {...form.getInputProps("passingDate")}
-        />
+        <Group>
+          <DatePicker
+            readOnly={isLocked}
+            inputFormat="DD-MM-YYYY"
+            locale="nl"
+            withAsterisk={!isLocked && !passingDateOptional}
+            label="Passeerdatum"
+            {...form.getInputProps("passingDate")}
+            onChange={(value) => {
+              form.setFieldValue("passingDate", value);
+              if (value) setPassingDateOptional(false);
+            }}
+          />
+          <Checkbox
+            mt={30}
+            checked={passingDateOptional}
+            label="N.V.T."
+            onChange={(e) => {
+              setPassingDateOptional(e.target.checked);
+              if (e.target.checked) form.setFieldValue("passingDate", null);
+            }}
+          />
+        </Group>
         <TextInput
           readOnly={isLocked}
           withAsterisk={!isLocked}
           label="Notarisnaam"
           {...form.getInputProps("notaryName")}
         />
-        <Select
-          searchable
-          readOnly={isLocked}
-          withAsterisk={!isLocked}
-          label="Maatschappij"
-          data={companieSelectData}
-          {...form.getInputProps("companyId")}
-        />
+        <Group>
+          <Select
+            searchable
+            readOnly={isLocked}
+            withAsterisk={!isLocked}
+            label="Maatschappij"
+            data={companieSelectData}
+            {...form.getInputProps("companyId")}
+          />
+          <Checkbox
+            mt={30}
+            checked={form.values.starterLoan}
+            label="SVn Starterslening"
+            onChange={(e) => {
+              form.setFieldValue("starterLoan", e.target.checked);
+            }}
+          />
+        </Group>
         <Group grow>
           <TextInput
             readOnly={isLocked}

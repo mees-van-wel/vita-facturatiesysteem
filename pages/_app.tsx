@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import { Barlow } from "@next/font/google";
+import { Barlow } from "next/font/google";
 import Head from "next/head";
 import { ColorScheme, MantineProvider } from "@mantine/core";
 import { ReactElement, ReactNode } from "react";

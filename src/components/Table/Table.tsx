@@ -11,6 +11,7 @@ import {
   NumberInput,
   TextInput,
   ColorScheme,
+  MultiSelect,
 } from "@mantine/core";
 import { ReactNode, useMemo, useState } from "react";
 import { TableCount, tableCount } from "../../enums/tableCount.enum";
@@ -35,12 +36,14 @@ import { useRouter } from "next/router";
 import { utils, writeFile } from "xlsx";
 import Link from "next/link";
 import "dayjs/locale/nl";
+import { ExpenseState, expenseStateLabel } from "../../enums/expenseState.enum";
 
 export interface TableHeader {
   key: string;
   label: string;
   format?: (value: any) => ReactNode;
   filterType?: FilterType;
+  noSort?: boolean;
   show?: boolean;
   sort?: SortOption;
 }
@@ -73,7 +76,7 @@ const Table = ({
 }: TableProps) => {
   const [showFilter, setShowFilter] = useState(false);
   const [filter, setFilter] = useDebouncedState<Filter>({}, 250);
-  const [sort, setSort] = useState<Sort>({});
+  const [sort, setSort] = useState<Sort>({ id: SortOption.Descending });
   const [colorScheme] = useLocalStorage<ColorScheme>({
     key: "color-scheme",
     defaultValue: "dark",
@@ -158,20 +161,22 @@ const Table = ({
                     tableHeader={tableHeader}
                     onChange={filterHandler}
                   />
-                  <Button
-                    variant={sort[tableHeader.key] ? "filled" : "light"}
-                    onClick={() => sortHandler(tableHeader.key)}
-                  >
-                    {sort[tableHeader.key] ? (
-                      sort[tableHeader.key] === SortOption.Ascending ? (
-                        <IconSortAscending size={16} />
+                  {!tableHeader.noSort && (
+                    <Button
+                      variant={sort[tableHeader.key] ? "filled" : "light"}
+                      onClick={() => sortHandler(tableHeader.key)}
+                    >
+                      {sort[tableHeader.key] ? (
+                        sort[tableHeader.key] === SortOption.Ascending ? (
+                          <IconSortAscending size={16} />
+                        ) : (
+                          <IconSortDescending size={16} />
+                        )
                       ) : (
-                        <IconSortDescending size={16} />
-                      )
-                    ) : (
-                      <IconArrowsSort size={16} />
-                    )}
-                  </Button>
+                        <IconArrowsSort size={16} />
+                      )}
+                    </Button>
+                  )}
                 </Group>
               )
           )}
@@ -217,9 +222,6 @@ const DataTable = ({
   const filtering = useMemo(() => !!Object.keys(filter).length, [filter]);
 
   const exportHandler = () => {
-    // if (!data?.collection) return;
-    // const workbook = utils.book_new();
-    // utils.book_append_sheet(workbook, utils.json_to_sheet(data.collection));
     const workbook = utils.table_to_book(document.getElementById("table"), {
       sheet: title,
     });
@@ -536,6 +538,23 @@ const FilterInput = ({
           />
         )}
       </>
+    );
+
+  if (tableHeader.filterType === FilterType.Status)
+    return (
+      <MultiSelect
+        data={Object.values(ExpenseState).map((key) => ({
+          label: expenseStateLabel[key as ExpenseState],
+          value: key,
+        }))}
+        style={{
+          flex: 1,
+        }}
+        label={tableHeader.label}
+        onChange={(value) => {
+          update(value);
+        }}
+      />
     );
 
   return null;
