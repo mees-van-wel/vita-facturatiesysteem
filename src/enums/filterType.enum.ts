@@ -3,6 +3,7 @@ export const enum FilterType {
   String = "STRING",
   Date = "DATE",
   Decimal = "DECIMAL",
+  Status = "STATUS",
 }
 
 export const enum FilterExtraType {

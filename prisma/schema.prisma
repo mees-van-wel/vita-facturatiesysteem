@@ -62,10 +62,11 @@ model Expense {
   invoiceAddress           String
   postalCode               String
   city                     String
-  passingDate              DateTime
+  passingDate              DateTime?
   notaryName               String
   company                  Company   @relation(fields: [companyId], references: [id])
   companyId                Int
+  starterLoan              Boolean   @default(false)
   objectAddress            String
   objectPostalCode         String
   objectCity               String

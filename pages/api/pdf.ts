@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { unstable_getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { open } from "node:fs/promises";
 
@@ -19,7 +19,7 @@ export default async function pdfHandler(
 
   if (!fileName) return res.status(400).end(`fileName is missing`);
 
-  const session = await unstable_getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, authOptions);
   if (!session) return res.status(401).send("Je moet ingelogd zijn");
 
   try {
