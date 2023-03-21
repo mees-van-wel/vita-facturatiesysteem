@@ -16,7 +16,7 @@ import {
   IconDeviceFloppy,
   IconLockOpen,
   IconTrash,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";

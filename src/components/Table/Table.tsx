@@ -28,9 +28,9 @@ import {
   IconPlus,
   IconAdjustments,
   IconAdjustmentsOff,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 import { FilterExtraType, FilterType } from "../../enums/filterType.enum";
-import { DatePicker, DateRangePicker } from "@mantine/dates";
+import { DatePickerInput } from "@mantine/dates";
 import { useRouter } from "next/router";
 import { utils, writeFile } from "xlsx";
 import Link from "next/link";
@@ -299,7 +299,7 @@ const DataTable = ({
             <Group align="end">
               <Pagination
                 total={Math.round(data.count / parseInt(take)) + 1}
-                page={page}
+                value={page}
                 onChange={setPage}
                 withEdges
               />
@@ -450,7 +450,8 @@ const FilterInput = ({
           }}
         />
         {filterDateType === FilterExtraType.Between ? (
-          <DateRangePicker
+          <DatePickerInput
+            type="range"
             style={{
               flex: 1,
             }}
@@ -463,8 +464,8 @@ const FilterInput = ({
             }}
           />
         ) : (
-          <DatePicker
-            inputFormat="DD-MM-YYYY"
+          <DatePickerInput
+            valueFormat="DD-MM-YYYY"
             locale="nl"
             style={{
               flex: 1,
@@ -562,8 +563,8 @@ const NumberRangeInput = ({
         precision={precision}
         value={values[0]}
         onChange={(value) => {
-          setValues([value, values[1]]);
-          onChange([value, values[1]]);
+          setValues([value === "" ? undefined : value, values[1]]);
+          onChange([value === "" ? undefined : value, values[1]]);
         }}
       />
       <NumberInput
@@ -574,8 +575,8 @@ const NumberRangeInput = ({
         precision={precision}
         value={values[1]}
         onChange={(value) => {
-          setValues([values[0], value]);
-          onChange([values[0], value]);
+          setValues([values[0], value === "" ? undefined : value]);
+          onChange([values[0], value === "" ? undefined : value]);
         }}
       />
     </>

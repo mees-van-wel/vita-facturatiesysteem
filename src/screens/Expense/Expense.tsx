@@ -13,7 +13,7 @@ import {
   Badge,
   Stack,
 } from "@mantine/core";
-import { DatePicker } from "@mantine/dates";
+import { DatePickerInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { closeModal, openModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
@@ -31,7 +31,7 @@ import {
   IconDeviceFloppy,
   IconFileText,
   IconSend,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -373,8 +373,10 @@ const Form = ({ expense, users, companies }: FormProps) => {
 
   const isLocked = useMemo(
     () =>
-      session.data?.user.role === Role.FinancialWorker ||
-      (lastState?.type && lastState.type !== ExpenseState.Rejected),
+      !!(
+        session.data?.user.role === Role.FinancialWorker ||
+        (lastState?.type && lastState.type !== ExpenseState.Rejected)
+      ),
     [lastState?.type, session.data?.user.role]
   );
 
@@ -641,9 +643,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
             {...form.getInputProps("city")}
           />
         </Group>
-        <DatePicker
+        <DatePickerInput
           readOnly={isLocked}
-          inputFormat="DD-MM-YYYY"
+          valueFormat="DD-MM-YYYY"
           locale="nl"
           withAsterisk={!isLocked}
           label="Passeerdatum"
@@ -686,19 +688,19 @@ const Form = ({ expense, users, companies }: FormProps) => {
         <Group grow>
           <MoneyInput
             readOnly={isLocked}
-            withAsterisk={!isLocked}
+            required={!isLocked}
             label="Bedrag hypotheek"
             {...form.getInputProps("mortgageInvoiceAmount")}
           />
           <MoneyInput
             readOnly={isLocked}
-            withAsterisk={!isLocked}
+            required={!isLocked}
             label="Bedrag verzekering"
             {...form.getInputProps("insuranceInvoiceAmount")}
           />
           <MoneyInput
             readOnly={isLocked}
-            withAsterisk={!isLocked}
+            required={!isLocked}
             label="Bedrag overige"
             {...form.getInputProps("otherInvoiceAmount")}
           />

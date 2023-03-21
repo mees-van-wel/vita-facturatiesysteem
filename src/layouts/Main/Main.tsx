@@ -24,7 +24,7 @@ import {
   IconUsers,
   IconMoon,
   IconSun,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { Route } from "../../enums/route.enum";
 import { useRouter } from "next/router";
@@ -108,7 +108,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           <Anchor href="https://www.hexa-it.nl" target="_blank">
             Hexa-IT
           </Anchor>{" "}
-          - Version 0.1.0
+          - Version 0.2.1
         </Footer>
       }
       header={

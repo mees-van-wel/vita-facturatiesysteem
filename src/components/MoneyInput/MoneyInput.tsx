@@ -1,5 +1,5 @@
 import { NumberInput } from "@mantine/core";
-import { IconCurrencyEuro } from "@tabler/icons";
+import { IconCurrencyEuro } from "@tabler/icons-react";
 import { ReactNode } from "react";
 
 interface MoneyInputProps {

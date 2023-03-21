@@ -6,7 +6,7 @@ import { ColorScheme, MantineProvider } from "@mantine/core";
 import { ReactElement, ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import { NextPage } from "next";
-import { NotificationsProvider } from "@mantine/notifications";
+import { Notifications } from "@mantine/notifications";
 import { AuthenticationContextProvider } from "../src/context/AuthenticationContextProvidert";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ModalsProvider } from "@mantine/modals";
@@ -60,17 +60,16 @@ export default function App({
           fontFamily: inter.style.fontFamily,
         }}
       >
-        <NotificationsProvider position="top-right">
-          <ModalsProvider>
-            <SessionProvider session={session}>
-              <AuthenticationContextProvider>
-                <QueryClientProvider client={queryClient}>
-                  {getLayout(<Component {...pageProps} />)}
-                </QueryClientProvider>
-              </AuthenticationContextProvider>
-            </SessionProvider>
-          </ModalsProvider>
-        </NotificationsProvider>
+        <Notifications position="top-right" />
+        <ModalsProvider>
+          <SessionProvider session={session}>
+            <AuthenticationContextProvider>
+              <QueryClientProvider client={queryClient}>
+                {getLayout(<Component {...pageProps} />)}
+              </QueryClientProvider>
+            </AuthenticationContextProvider>
+          </SessionProvider>
+        </ModalsProvider>
       </MantineProvider>
     </>
   );
