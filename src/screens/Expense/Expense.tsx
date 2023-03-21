@@ -291,10 +291,6 @@ const Form = ({ expense, users, companies }: FormProps) => {
     },
   });
 
-  useEffect(() => {
-    setPassingDateOptional(!form.values.passingDate);
-  }, []);
-
   const lastState = useMemo(
     () => expense?.states[expense.states.length - 1],
     [expense?.states]
@@ -308,6 +304,10 @@ const Form = ({ expense, users, companies }: FormProps) => {
       ),
     [lastState?.type, session.data?.user.role]
   );
+
+  useEffect(() => {
+    if (isLocked) setPassingDateOptional(!form.values.passingDate);
+  }, []);
 
   const state = useMemo(
     () => (expense ? expense.states[expense.states.length - 1] : undefined),
@@ -326,7 +326,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
 
   const companieSelectData = useMemo(
     () =>
-      companies.map(({ name, id }) => ({ label: name, value: id.toString() })),
+      companies
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(({ name, id }) => ({ label: name, value: id.toString() })),
     [companies]
   );
 

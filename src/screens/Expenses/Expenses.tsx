@@ -174,6 +174,12 @@ export const Expenses: NextPageWithLayout = () => {
         filterType: FilterType.String,
       },
       {
+        show: false,
+        key: "starterLoan",
+        label: "SVn Starterslening",
+        format: (value) => (value ? "Ja" : "Nee"),
+      },
+      {
         key: "objectAddress",
         label: "Adres object",
         filterType: FilterType.String,
