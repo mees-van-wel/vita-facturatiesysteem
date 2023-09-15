@@ -561,8 +561,13 @@ const Form = ({ expense, users, companies }: FormProps) => {
             label="Voorletters klant"
             {...form.getInputProps("customerInitials")}
             onChange={(e) => {
-              if (e.target.value.length > form.values.customerInitials.length) {
-                const array = e.target.value.trim().split("");
+              let inputValue = e.target.value;
+              const lastValue = inputValue.at(-1);
+
+              if (lastValue === ".") inputValue = inputValue.slice(0, -1);
+
+              if (inputValue.length > form.values.customerInitials.length) {
+                const array = inputValue.trim().split("");
                 const value = array.reduce((string, current, index) => {
                   if (current === "." || array[index + 1] === ".")
                     return (string += current.toUpperCase());
@@ -571,7 +576,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
                 }, "");
 
                 form.setFieldValue("customerInitials", value);
-              } else form.setFieldValue("customerInitials", e.target.value);
+              } else form.setFieldValue("customerInitials", inputValue);
             }}
           />
           <TextInput
@@ -873,6 +878,8 @@ const RejectModal = ({ onSubmit }: RejectModalProps) => {
   return (
     <Group align="end">
       <Textarea
+        required
+        withAsterisk
         label="Reden"
         autosize
         value={notes}
@@ -898,6 +905,7 @@ const RejectModal = ({ onSubmit }: RejectModalProps) => {
           });
         }}
         leftIcon={<IconDeviceFloppy />}
+        disabled={!notes}
       >
         Afkeuren
       </Button>

@@ -16,7 +16,7 @@ import {
 import { ReactNode, useMemo, useState } from "react";
 import { TableCount, tableCount } from "../../enums/tableCount.enum";
 import get from "lodash.get";
-import { useDebouncedState, useLocalStorage } from "@mantine/hooks";
+import { useDebouncedValue, useLocalStorage } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { Route } from "../../enums/route.enum";
 import { query } from "../../lib/query.lib";
@@ -67,6 +67,9 @@ export enum SortOption {
 
 type Sort = Record<string, SortOption>;
 
+const initFilter = {};
+const initSort = { id: SortOption.Descending };
+
 const Table = ({
   title,
   route,
@@ -75,8 +78,18 @@ const Table = ({
   canCreate = true,
 }: TableProps) => {
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useDebouncedState<Filter>({}, 250);
-  const [sort, setSort] = useState<Sort>({ id: SortOption.Descending });
+  const [filter, setFilter] = useLocalStorage<Filter>({
+    key: `${route}-filter`,
+    defaultValue: initFilter,
+  });
+
+  const [debouncedFilter] = useDebouncedValue(filter, 250);
+
+  const [sort, setSort] = useLocalStorage<Sort>({
+    key: `${route}-sort`,
+    defaultValue: initSort,
+  });
+
   const [colorScheme] = useLocalStorage<ColorScheme>({
     key: "color-scheme",
     defaultValue: "dark",
@@ -97,7 +110,7 @@ const Table = ({
 
   const sortHandler = (key: string) => {
     const current = sort[key];
-    const clone = { ...sort };
+    const clone: Sort = {};
 
     if (!current) clone[key] = SortOption.Ascending;
     if (current === SortOption.Ascending) clone[key] = SortOption.Descending;
@@ -129,7 +142,7 @@ const Table = ({
         route={route}
         dataRoute={dataRoute}
         headers={headers}
-        filter={filter}
+        filter={debouncedFilter}
         sort={sort}
       />
 
@@ -153,11 +166,26 @@ const Table = ({
             height: "calc(100% - 60px)",
           }}
         >
+          {(filter || sort) &&
+            (JSON.stringify(initFilter) !== JSON.stringify(filter) ||
+              JSON.stringify(initSort) !== JSON.stringify(sort)) && (
+              <Button
+                mb="xs"
+                fullWidth
+                onClick={() => {
+                  setFilter(initFilter);
+                  setSort(initSort);
+                }}
+              >
+                Reset verfijning
+              </Button>
+            )}
           {headers.map(
             (tableHeader) =>
               tableHeader.filterType && (
-                <Group key={tableHeader.key} align={"end"}>
+                <Group key={tableHeader.key} align="end">
                   <FilterInput
+                    filter={filter?.[tableHeader.key]}
                     tableHeader={tableHeader}
                     onChange={filterHandler}
                   />
@@ -166,7 +194,7 @@ const Table = ({
                       variant={sort[tableHeader.key] ? "filled" : "light"}
                       onClick={() => sortHandler(tableHeader.key)}
                     >
-                      {sort[tableHeader.key] ? (
+                      {sort?.[tableHeader.key] ? (
                         sort[tableHeader.key] === SortOption.Ascending ? (
                           <IconSortAscending size={16} />
                         ) : (
@@ -338,9 +366,11 @@ const DataTable = ({
 };
 
 const FilterInput = ({
+  filter,
   tableHeader,
   onChange,
 }: {
+  filter: Filter;
   tableHeader: TableHeader;
   onChange: (key: string) => (value?: any) => void;
 }) => {
@@ -383,6 +413,7 @@ const FilterInput = ({
         />
         {filterDateType === FilterExtraType.Between ? (
           <NumberRangeInput
+            value={[filter?.[filterDateType]?.gt, filter?.[filterDateType]?.lt]}
             onChange={(value) => {
               update({
                 gt: value[0],
@@ -396,6 +427,7 @@ const FilterInput = ({
               flex: 1,
             }}
             precision={0}
+            value={filter?.[filterDateType]}
             onChange={(value) => {
               update({
                 [filterDateType]: value,
@@ -412,6 +444,7 @@ const FilterInput = ({
         style={{
           flex: 1,
         }}
+        value={filter?.contains}
         label={tableHeader.label}
         onChange={(e) => {
           update({ contains: e.target.value });
