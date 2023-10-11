@@ -22,15 +22,24 @@ export default async function handler(
 
   let where: any = Object.keys(filter).reduce<Partial<Expense>>(
     (object, key) => {
-      const reversed = key.split(".").reverse();
-      const values = filter[key];
+      const formatFilterValue = (key: string, value: any) => {
+        const reversed = key.split(".").reverse();
 
-      const value = reversed.reduce(
-        (res, key, index) => ({ [key]: index === 0 ? values : res }),
-        {}
-      );
+        return reversed.reduce(
+          (res, key, index) => ({ [key]: index === 0 ? value : res }),
+          {}
+        );
+      };
 
-      return { ...object, ...value };
+      const keyParts = key.split("||");
+
+      if (keyParts.length > 1)
+        return {
+          ...object,
+          OR: keyParts.map((subKey) => formatFilterValue(subKey, filter[key])),
+        };
+
+      return { ...object, ...formatFilterValue(key, filter[key]) };
     },
     {}
   );

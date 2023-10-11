@@ -109,6 +109,11 @@ export const Expenses: NextPageWithLayout = () => {
       {
         key: "customerLastName",
         label: "Achternaam klant",
+      },
+      {
+        show: false,
+        key: "customerLastName||secondCustomerLastName",
+        label: "Achternaam klant(en)",
         filterType: FilterType.String,
       },
       {
@@ -183,6 +188,11 @@ export const Expenses: NextPageWithLayout = () => {
         key: "objectAddress",
         label: "Adres object",
         filterType: FilterType.String,
+      },
+      {
+        show: false,
+        key: "objectPostalCode",
+        label: "Postcode object",
       },
       {
         key: "objectCity",

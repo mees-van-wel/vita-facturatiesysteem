@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../src/lib/prisma.lib";
 import * as argon2 from "argon2";
 
-export default async function userHandler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {

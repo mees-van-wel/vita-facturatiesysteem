@@ -94,11 +94,6 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 />
               </Link>
             )}
-            <NavLink
-              onClick={() => signOut()}
-              label="Uitloggen"
-              icon={<IconLogout />}
-            />
           </Navbar>
         ) : undefined
       }
@@ -108,7 +103,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           <Anchor href="https://www.hexa-it.nl" target="_blank">
             Hexa-IT
           </Anchor>{" "}
-          - Version 0.2.1
+          - Version 0.2.2
         </Footer>
       }
       header={
@@ -157,7 +152,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 </Badge>
                 <Button
                   compact
-                  variant="outline"
+                  variant="light"
+                  title="Thema"
                   onClick={() => {
                     setColorScheme((current) =>
                       current === "dark" ? "light" : "dark"
@@ -169,6 +165,15 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   ) : (
                     <IconMoon size={16} />
                   )}
+                </Button>
+                <Button
+                  compact
+                  variant="light"
+                  color="red"
+                  title="Uitloggen"
+                  onClick={() => signOut()}
+                >
+                  <IconLogout size={16} />
                 </Button>
               </Group>
             )}

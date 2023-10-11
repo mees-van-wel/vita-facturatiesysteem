@@ -377,6 +377,7 @@ const FilterInput = ({
   const [filterDateType, setFilterDateType] = useState<FilterExtraType>(
     FilterExtraType.Equals
   );
+
   const update = onChange(tableHeader.key);
 
   if (tableHeader.filterType === FilterType.Number)
@@ -427,7 +428,7 @@ const FilterInput = ({
               flex: 1,
             }}
             precision={0}
-            value={filter?.[filterDateType]}
+            value={filter?.[filterDateType] as never as number}
             onChange={(value) => {
               update({
                 [filterDateType]: value,
@@ -444,7 +445,7 @@ const FilterInput = ({
         style={{
           flex: 1,
         }}
-        value={filter?.contains}
+        value={filter?.contains as never as string}
         label={tableHeader.label}
         onChange={(e) => {
           update({ contains: e.target.value });
@@ -577,6 +578,7 @@ const FilterInput = ({
   if (tableHeader.filterType === FilterType.Status)
     return (
       <MultiSelect
+        value={(filter as never as string[]) || []}
         data={Object.values(ExpenseState).map((key) => ({
           label: expenseStateLabel[key as ExpenseState],
           value: key,

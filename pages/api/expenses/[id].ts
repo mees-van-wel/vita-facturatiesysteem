@@ -6,7 +6,14 @@ import formidable from "formidable";
 import slugify from "slugify";
 import { Expense } from "@prisma/client";
 import { ExpenseState } from "../../../src/enums/expenseState.enum";
-import fs from "fs";
+import { readFile, writeFile, unlink } from "fs/promises";
+import crypto from "crypto";
+
+const generateRandomHash = () => {
+  const randomBytes = crypto.randomBytes(16);
+  const hash = crypto.createHash("sha256").update(randomBytes).digest("hex");
+  return hash;
+};
 
 export const config = {
   api: {
@@ -14,7 +21,7 @@ export const config = {
   },
 };
 
-export default async function userHandler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -65,24 +72,40 @@ export default async function userHandler(
       }, {}),
     };
 
-    Object.keys(data.files).map((key) => {
-      const file = data.files[key] as formidable.File;
+    await Promise.all(
+      Object.keys(data.files).map(async (key) => {
+        const file = data.files[key] as formidable.File;
 
-      if (!file) return;
+        const expense = await prisma.expense.findUnique({
+          select: { [key]: true },
+          where: { id: parseInt(id as string) },
+        });
 
-      const fileName = file.originalFilename
-        ? `${slugify(file.originalFilename.split(".pdf")[0])}_${
-            file.newFilename
-          }.pdf`
-        : `${file.newFilename}.pdf`;
+        const currentFilename = expense?.[key as keyof Expense];
 
-      // @ts-ignore
-      update[key] = fileName;
+        if (!expense || file.originalFilename === currentFilename) return;
 
-      const fileData = fs.readFileSync(file.filepath);
-      fs.writeFileSync(`src/uploads/${fileName}`, fileData);
-      fs.unlinkSync(file.filepath);
-    });
+        if (currentFilename) {
+          try {
+            await unlink(`src/uploads/${currentFilename}`);
+          } catch (error) {
+            console.log("File not found while trying to delete old file");
+          }
+        }
+
+        const hash = generateRandomHash();
+        const newFilename = file.originalFilename
+          ? `${slugify(file.originalFilename.split(".pdf")[0])}_${hash}.pdf`
+          : `${hash}.pdf`;
+
+        // @ts-ignore
+        update[key] = newFilename;
+
+        const fileData = await readFile(file.filepath);
+        await writeFile(`src/uploads/${newFilename}`, fileData);
+        await unlink(file.filepath);
+      })
+    );
 
     if (data.fields.handlerId)
       update.handlerId = parseInt(data.fields.handlerId as string);
@@ -108,6 +131,8 @@ export default async function userHandler(
     // @ts-ignore
     if (data.fields.states?.create.type === ExpenseState.Completed)
       update.completedAt = new Date();
+
+    console.log(update);
 
     const expense = await prisma.expense.update({
       data: update,
@@ -143,22 +168,23 @@ export default async function userHandler(
       }, {}),
     };
 
-    Object.keys(data.files).forEach((key) => {
-      const file = data.files[key] as formidable.File;
+    await Promise.all(
+      Object.keys(data.files).map(async (key) => {
+        const file = data.files[key] as formidable.File;
 
-      const fileName = file.originalFilename
-        ? `${slugify(file.originalFilename.split(".pdf")[0])}_${
-            file.newFilename
-          }.pdf`
-        : `${file.newFilename}.pdf`;
+        const hash = generateRandomHash();
+        const newFilename = file.originalFilename
+          ? `${slugify(file.originalFilename.split(".pdf")[0])}_${hash}.pdf`
+          : `${hash}.pdf`;
 
-      // @ts-ignore
-      update[key] = fileName;
+        // @ts-ignore
+        update[key] = newFilename;
 
-      const fileData = fs.readFileSync(file.filepath);
-      fs.writeFileSync(`src/uploads/${fileName}`, fileData);
-      fs.unlinkSync(file.filepath);
-    });
+        const fileData = await readFile(file.filepath);
+        await writeFile(`src/uploads/${newFilename}`, fileData);
+        await unlink(file.filepath);
+      })
+    );
 
     // @ts-ignore
     update.createdBy = {

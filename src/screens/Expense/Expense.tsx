@@ -262,34 +262,83 @@ const Form = ({ expense, users, companies }: FormProps) => {
 
   const form = useForm<FormValues>({
     initialValues: initialValues,
-    validate: {
-      handlerId: requiredValidation,
-      customerSalutation: requiredValidation,
-      customerInitials: requiredValidation,
-      customerLastName: requiredValidation,
-      customerEmail: requiredValidation,
-      invoiceAddress: requiredValidation,
-      postalCode: requiredValidation,
-      city: requiredValidation,
-      passingDate: !passingDateOptional ? requiredValidation : undefined,
-      notaryName: requiredValidation,
-      companyId: requiredValidation,
-      objectAddress: requiredValidation,
-      objectPostalCode: requiredValidation,
-      objectCity: requiredValidation,
-      signedOTDV: fileValidation,
-      zzpInvoice:
-        session.data?.user.role === Role.ExternalConsultant
-          ? fileValidation
+    validate: (values) => {
+      const secondCustomerRequired = !!(
+        values.secondCustomerSalutation ||
+        values.secondCustomerInitials ||
+        values.secondCustomerPrefix ||
+        values.secondCustomerLastName ||
+        values.secondCustomerEmail
+      );
+
+      const obj = {
+        handlerId: requiredValidation,
+        customerSalutation: requiredValidation,
+        customerInitials: requiredValidation,
+        customerLastName: requiredValidation,
+        customerEmail: requiredValidation,
+        secondCustomerSalutation: secondCustomerRequired
+          ? requiredValidation
           : undefined,
-      paymentMethod: requiredValidation,
-      spreadPaymentAgreement: (value: File | null, values: FormValues) =>
-        values.paymentMethod === PaymentMethod.Spread
-          ? fileValidation(value)
+        secondCustomerInitials: secondCustomerRequired
+          ? requiredValidation
           : undefined,
-      IBDeclaration: requiredValidation,
+        secondCustomerLastName: secondCustomerRequired
+          ? requiredValidation
+          : undefined,
+        secondCustomerEmail: secondCustomerRequired
+          ? requiredValidation
+          : undefined,
+        invoiceAddress: requiredValidation,
+        postalCode: requiredValidation,
+        city: requiredValidation,
+        passingDate: !passingDateOptional ? requiredValidation : undefined,
+        notaryName: requiredValidation,
+        companyId: requiredValidation,
+        objectAddress: requiredValidation,
+        objectPostalCode: requiredValidation,
+        objectCity: requiredValidation,
+        signedOTDV: fileValidation,
+        zzpInvoice:
+          session.data?.user.role === Role.ExternalConsultant
+            ? fileValidation
+            : undefined,
+        paymentMethod: requiredValidation,
+        spreadPaymentAgreement: (value: File | null) =>
+          values.paymentMethod === PaymentMethod.Spread
+            ? fileValidation(value)
+            : undefined,
+        IBDeclaration: requiredValidation,
+      };
+
+      return Object.keys(obj).reduce((object, key) => {
+        const value = obj[key as keyof typeof obj];
+
+        return {
+          ...object,
+          [key]: value ? value(values[key as keyof FormValues]) : undefined,
+        };
+      }, {});
     },
   });
+
+  const secondCustomerRequired = useMemo(
+    () =>
+      !!(
+        form.values.secondCustomerSalutation ||
+        form.values.secondCustomerInitials ||
+        form.values.secondCustomerPrefix ||
+        form.values.secondCustomerLastName ||
+        form.values.secondCustomerEmail
+      ),
+    [
+      form.values.secondCustomerEmail,
+      form.values.secondCustomerInitials,
+      form.values.secondCustomerLastName,
+      form.values.secondCustomerPrefix,
+      form.values.secondCustomerSalutation,
+    ]
+  );
 
   const lastState = useMemo(
     () => expense?.states[expense.states.length - 1],
@@ -306,7 +355,8 @@ const Form = ({ expense, users, companies }: FormProps) => {
   );
 
   useEffect(() => {
-    if (isLocked) setPassingDateOptional(!form.values.passingDate);
+    if (isLocked || id !== NEW)
+      setPassingDateOptional(!form.values.passingDate);
   }, []);
 
   const state = useMemo(
@@ -601,12 +651,15 @@ const Form = ({ expense, users, companies }: FormProps) => {
           <Select
             data={["De heer", "Mevrouw"]}
             readOnly={isLocked}
+            clearable
             label="Aanhef 2e klant"
+            withAsterisk={secondCustomerRequired}
             {...form.getInputProps("secondCustomerSalutation")}
           />
           <TextInput
             readOnly={isLocked}
             label="Voorletters 2e klant"
+            withAsterisk={secondCustomerRequired}
             {...form.getInputProps("secondCustomerInitials")}
             onChange={(e) => {
               if (
@@ -633,11 +686,13 @@ const Form = ({ expense, users, companies }: FormProps) => {
           />
           <TextInput
             readOnly={isLocked}
+            withAsterisk={secondCustomerRequired}
             label="Achternaam 2e klant"
             {...form.getInputProps("secondCustomerLastName")}
           />
           <TextInput
             readOnly={isLocked}
+            withAsterisk={secondCustomerRequired}
             label="E-mail 2e klant"
             {...form.getInputProps("secondCustomerEmail")}
           />
@@ -876,7 +931,7 @@ const RejectModal = ({ onSubmit }: RejectModalProps) => {
   const [notes, setNotes] = useState("");
 
   return (
-    <Group align="end">
+    <Stack>
       <Textarea
         required
         withAsterisk
@@ -904,12 +959,11 @@ const RejectModal = ({ onSubmit }: RejectModalProps) => {
             });
           });
         }}
-        leftIcon={<IconDeviceFloppy />}
         disabled={!notes}
       >
         Afkeuren
       </Button>
-    </Group>
+    </Stack>
   );
 };
 

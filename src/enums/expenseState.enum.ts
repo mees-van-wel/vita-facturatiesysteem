@@ -19,5 +19,5 @@ export const expenseStateColor = {
   [ExpenseState.Approved]: "green",
   [ExpenseState.Rejected]: "red",
   [ExpenseState.Resubmitted]: "orange",
-  [ExpenseState.Completed]: "green",
+  [ExpenseState.Completed]: "blue",
 };
