@@ -132,8 +132,6 @@ export default async function handler(
     if (data.fields.states?.create.type === ExpenseState.Completed)
       update.completedAt = new Date();
 
-    console.log(update);
-
     const expense = await prisma.expense.update({
       data: update,
       where: { id: parseInt(id as string) },
