@@ -316,7 +316,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
 
         return {
           ...object,
-          [key]: value ? value(values[key as keyof FormValues]) : undefined,
+          [key]: value
+            ? value(values[key as keyof FormValues] as any)
+            : undefined,
         };
       }, {});
     },

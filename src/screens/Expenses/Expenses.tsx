@@ -23,7 +23,7 @@ import {
 export const Expenses: NextPageWithLayout = () => {
   const session = useSession();
 
-  const tableHeaders: TableHeaders = useMemo(
+  const tableHeaders = useMemo<TableHeaders>(
     () => [
       {
         key: "id",
@@ -111,6 +111,7 @@ export const Expenses: NextPageWithLayout = () => {
         label: "Achternaam klant",
       },
       {
+        noExport: true,
         show: false,
         key: "customerLastName||secondCustomerLastName",
         label: "Achternaam klant(en)",

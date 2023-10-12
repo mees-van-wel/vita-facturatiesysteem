@@ -45,6 +45,7 @@ export interface TableHeader {
   filterType?: FilterType;
   noSort?: boolean;
   show?: boolean;
+  noExport?: boolean;
   sort?: SortOption;
 }
 
@@ -264,22 +265,24 @@ const DataTable = ({
           <TableComponent id="table" highlightOnHover>
             <thead>
               <tr>
-                {headers.map(({ label, show = true }) => (
-                  <th
-                    key={label}
-                    style={{
-                      display: !show ? "none" : undefined,
-                    }}
-                  >
-                    <p
+                {headers
+                  .filter(({ noExport }) => !noExport)
+                  .map(({ label, show = true }) => (
+                    <th
+                      key={label}
                       style={{
-                        whiteSpace: "nowrap",
+                        display: !show ? "none" : undefined,
                       }}
                     >
-                      {label}
-                    </p>
-                  </th>
-                ))}
+                      <p
+                        style={{
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {label}
+                      </p>
+                    </th>
+                  ))}
               </tr>
             </thead>
             <tbody>
@@ -293,8 +296,9 @@ const DataTable = ({
                     cursor: "pointer",
                   }}
                 >
-                  {Object.values(headers).map(
-                    ({ key, format, show = true }) => {
+                  {Object.values(headers)
+                    .filter(({ noExport }) => !noExport)
+                    .map(({ key, format, show = true }) => {
                       let value = get(row, key);
                       if (format) value = format(value);
                       return (
@@ -317,8 +321,7 @@ const DataTable = ({
                           </p>
                         </td>
                       );
-                    }
-                  )}
+                    })}
                 </tr>
               ))}
             </tbody>
