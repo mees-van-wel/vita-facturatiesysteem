@@ -13,7 +13,11 @@ export default async function handler(
 
   const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!!user && (await argon2.verify(user.password, password)))
+  if (
+    user &&
+    !user.deactivated &&
+    (await argon2.verify(user.password, password))
+  )
     return res.status(200).json(user);
 
   return res.status(401).send("Ongeldige inloggegevens");

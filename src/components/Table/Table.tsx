@@ -300,7 +300,7 @@ const DataTable = ({
                     .filter(({ noExport }) => !noExport)
                     .map(({ key, format, show = true }) => {
                       let value = get(row, key);
-                      if (format) value = format(value);
+                      if (format) value = format(row);
                       return (
                         <td
                           key={key}

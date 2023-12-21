@@ -18,6 +18,7 @@ model User {
   email           String    @unique
   password        String
   role            String
+  deactivated     Boolean?
   createdExpenses Expense[] @relation("CreatedExpenses")
   handledExpenses Expense[] @relation("HandledExpenses")
 }

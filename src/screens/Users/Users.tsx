@@ -6,6 +6,8 @@ import { FilterType } from "../../enums/filterType.enum";
 import { Role, roleLabel } from "../../enums/role.enum";
 import { Route } from "../../enums/route.enum";
 import { MainLayout } from "../../layouts/Main";
+import { Group } from "@mantine/core";
+import { IconUserDown } from "@tabler/icons-react";
 
 const tableHeaders: TableHeaders = [
   {
@@ -16,6 +18,15 @@ const tableHeaders: TableHeaders = [
   {
     key: "name",
     label: "Naam",
+    format: ({ name, deactivated }) =>
+      deactivated ? (
+        <Group spacing="xs" title="Gedeactiveerd">
+          <IconUserDown size="1rem" color="#e03131" />
+          {name}
+        </Group>
+      ) : (
+        name
+      ),
     filterType: FilterType.String,
   },
   {
@@ -26,13 +37,13 @@ const tableHeaders: TableHeaders = [
   {
     key: "role",
     label: "Role",
-    format: (value: Role) => roleLabel[value],
+    format: ({ role }: { role: Role }) => roleLabel[role],
     filterType: FilterType.String,
   },
   {
     key: "createdAt",
     label: "Gemaakt op",
-    format: (date) => new Date(date).toLocaleString("nl-NL"),
+    format: ({ createdAt }) => new Date(createdAt).toLocaleString("nl-NL"),
     filterType: FilterType.Date,
   },
 ];

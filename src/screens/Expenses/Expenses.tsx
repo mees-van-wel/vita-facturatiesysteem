@@ -35,7 +35,7 @@ export const Expenses: NextPageWithLayout = () => {
         label: "Status",
         filterType: FilterType.Status,
         noSort: true,
-        format: (states: State[]) => (
+        format: ({ states }: { states: State[] }) => (
           <Badge
             size="lg"
             color={
@@ -50,7 +50,7 @@ export const Expenses: NextPageWithLayout = () => {
         show: false,
         key: "states",
         label: "Opnieuw ingediend",
-        format: (states: State[]) =>
+        format: ({ states }: { states: State[] }) =>
           states.reduce((count, current) => {
             if (current.type === ExpenseState.Resubmitted) count = count + 1;
             return count;
@@ -70,7 +70,7 @@ export const Expenses: NextPageWithLayout = () => {
       {
         key: "isEarly",
         label: "Te laat",
-        format: (isEarly: boolean) =>
+        format: ({ isEarly }: { isEarly: boolean }) =>
           isEarly !== undefined ? (
             <Badge size="lg">{isEarly ? "Ja" : "Nee"}</Badge>
           ) : (
@@ -80,15 +80,17 @@ export const Expenses: NextPageWithLayout = () => {
       {
         key: "createdAt",
         label: "Ingediend",
-        format: (date) => new Date(date).toLocaleString("nl-NL"),
+        format: ({ createdAt }) => new Date(createdAt).toLocaleString("nl-NL"),
         filterType: FilterType.Date,
         sort: SortOption.Ascending,
       },
       {
         key: "completedAt",
         label: "Gefactureerd",
-        format: (date) =>
-          date ? new Date(date).toLocaleString("nl-NL") : "Nog niet",
+        format: ({ completedAt }) =>
+          completedAt
+            ? new Date(completedAt).toLocaleString("nl-NL")
+            : "Nog niet",
         filterType: FilterType.Date,
       },
       {
@@ -165,8 +167,10 @@ export const Expenses: NextPageWithLayout = () => {
       {
         key: "passingDate",
         label: "Passeerdatum",
-        format: (date) =>
-          date ? new Date(date).toLocaleDateString("nl-NL") : "N.V.T.",
+        format: ({ passingDate }) =>
+          passingDate
+            ? new Date(passingDate).toLocaleDateString("nl-NL")
+            : "N.V.T.",
         filterType: FilterType.Date,
       },
       {
@@ -183,7 +187,7 @@ export const Expenses: NextPageWithLayout = () => {
         show: false,
         key: "starterLoan",
         label: "SVn Starterslening",
-        format: (value) => (value ? "Ja" : "Nee"),
+        format: ({ starterLoan }) => (starterLoan ? "Ja" : "Nee"),
       },
       {
         key: "objectAddress",
@@ -203,31 +207,31 @@ export const Expenses: NextPageWithLayout = () => {
       {
         key: "mortgageInvoiceAmount",
         label: "Bedrag hypotheek",
-        format: (number: number) =>
+        format: ({ mortgageInvoiceAmount }) =>
           new Intl.NumberFormat("nl-NL", {
             style: "currency",
             currency: "EUR",
-          }).format(number),
+          }).format(mortgageInvoiceAmount),
         filterType: FilterType.Decimal,
       },
       {
         key: "insuranceInvoiceAmount",
         label: "Bedrag verzekering",
-        format: (number: number) =>
+        format: ({ insuranceInvoiceAmount }) =>
           new Intl.NumberFormat("nl-NL", {
             style: "currency",
             currency: "EUR",
-          }).format(number),
+          }).format(insuranceInvoiceAmount),
         filterType: FilterType.Decimal,
       },
       {
         key: "otherInvoiceAmount",
         label: "Bedrag overige",
-        format: (number: number) =>
+        format: ({ otherInvoiceAmount }) =>
           new Intl.NumberFormat("nl-NL", {
             style: "currency",
             currency: "EUR",
-          }).format(number),
+          }).format(otherInvoiceAmount),
         filterType: FilterType.Decimal,
       },
       {
@@ -239,15 +243,15 @@ export const Expenses: NextPageWithLayout = () => {
         show: false,
         key: "paymentMethod",
         label: "Betaalwijze",
-        format: (paymentMethod: PaymentMethod) =>
+        format: ({ paymentMethod }: { paymentMethod: PaymentMethod }) =>
           PaymentMethodLabel[paymentMethod],
       },
       {
         show: false,
         key: "IBDeclaration",
         label: "IB-aangifte door partner",
-        format: (iBDeclaration: IBDeclaration) =>
-          IBDeclarationLabel[iBDeclaration],
+        format: ({ IBDeclaration }: { IBDeclaration: IBDeclaration }) =>
+          IBDeclarationLabel[IBDeclaration],
       },
     ],
     [session.data?.user.role]
