@@ -39,10 +39,10 @@ export const Expenses: NextPageWithLayout = () => {
           <Badge
             size="lg"
             color={
-              expenseStateColor[states[states.length - 1].type as ExpenseState]
+              expenseStateColor[states[states.length - 1]?.type as ExpenseState]
             }
           >
-            {expenseStateLabel[states[states.length - 1].type as ExpenseState]}
+            {expenseStateLabel[states[states.length - 1]?.type as ExpenseState]}
           </Badge>
         ),
       },

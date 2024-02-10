@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -18,7 +19,7 @@ model User {
   email           String    @unique
   password        String
   role            String
-  deactivated     Boolean?
+  deactivated     Boolean
   createdExpenses Expense[] @relation("CreatedExpenses")
   handledExpenses Expense[] @relation("HandledExpenses")
 }

@@ -77,7 +77,7 @@ export default async function handler(
         const file = data.files[key] as formidable.File;
 
         const expense = await prisma.expense.findUnique({
-          select: { [key]: true },
+          // select: { [key]: true },
           where: { id: parseInt(id as string) },
         });
 
