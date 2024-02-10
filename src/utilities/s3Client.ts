@@ -1,5 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 
+export const bucketName = "vita-facturatiesysteem";
+
 export const s3Client = new S3Client({
   region: "eu2",
   forcePathStyle: true,

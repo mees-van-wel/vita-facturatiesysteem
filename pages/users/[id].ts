@@ -1,3 +1,3 @@
-import { User } from "../../src/screens/User";
+import { User } from "@/screens/User";
 
 export default User;

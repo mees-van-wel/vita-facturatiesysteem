@@ -1,3 +1,3 @@
-import { Expenses } from "../../src/screens/Expenses";
+import { Expenses } from "@/screens/Expenses";
 
 export default Expenses;

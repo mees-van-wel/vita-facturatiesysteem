@@ -1,8 +1,8 @@
 import { Expense } from "@prisma/client";
 import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth";
-import { Role } from "../../../src/enums/role.enum";
-import { prisma } from "../../../src/lib/prisma.lib";
+import { Role } from "@/enums/role.enum";
+import { prisma } from "@/lib/prisma.lib";
 import { authOptions } from "./../auth/[...nextauth]";
 
 export default async function handler(

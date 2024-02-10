@@ -7,7 +7,7 @@ import { ReactElement, ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import { NextPage } from "next";
 import { Notifications } from "@mantine/notifications";
-import { AuthenticationContextProvider } from "../src/context/AuthenticationContextProvidert";
+import { AuthenticationContextProvider } from "@/context/AuthenticationContextProvidert";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ModalsProvider } from "@mantine/modals";
 import { useLocalStorage } from "@mantine/hooks";

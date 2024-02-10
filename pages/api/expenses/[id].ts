@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
-import { prisma } from "../../../src/lib/prisma.lib";
+import { prisma } from "@/lib/prisma.lib";
 import formidable from "formidable";
 import slugify from "slugify";
 import { Expense } from "@prisma/client";
-import { ExpenseState } from "../../../src/enums/expenseState.enum";
-import { readFile, writeFile, unlink } from "fs/promises";
+import { ExpenseState } from "@/enums/expenseState.enum";
+import { readFile, unlink } from "fs/promises";
 import crypto from "crypto";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { bucketName, s3Client } from "@/utilities/s3Client";
 
 const generateRandomHash = () => {
   const randomBytes = crypto.randomBytes(16);
@@ -77,21 +79,26 @@ export default async function handler(
         const file = data.files[key] as formidable.File;
 
         const expense = await prisma.expense.findUnique({
-          // select: { [key]: true },
+          select: { [key]: true },
           where: { id: parseInt(id as string) },
         });
 
         const currentFilename = expense?.[key as keyof Expense];
 
+        // @ts-ignore
         if (!expense || file.originalFilename === currentFilename) return;
 
-        if (currentFilename) {
+        if (currentFilename)
           try {
-            await unlink(`src/uploads/${currentFilename}`);
+            await s3Client.send(
+              new DeleteObjectCommand({
+                Bucket: bucketName,
+                Key: `uploaded-pdfs/${currentFilename}`,
+              })
+            );
           } catch (error) {
             console.log("File not found while trying to delete old file");
           }
-        }
 
         const hash = generateRandomHash();
         const newFilename = file.originalFilename
@@ -102,7 +109,15 @@ export default async function handler(
         update[key] = newFilename;
 
         const fileData = await readFile(file.filepath);
-        await writeFile(`src/uploads/${newFilename}`, fileData);
+
+        await s3Client.send(
+          new PutObjectCommand({
+            Bucket: bucketName,
+            Key: `uploaded-pdfs/${newFilename}`,
+            Body: fileData,
+          })
+        );
+
         await unlink(file.filepath);
       })
     );
@@ -131,6 +146,8 @@ export default async function handler(
     // @ts-ignore
     if (data.fields.states?.create.type === ExpenseState.Completed)
       update.completedAt = new Date();
+
+    console.log(update);
 
     const expense = await prisma.expense.update({
       data: update,
@@ -179,7 +196,17 @@ export default async function handler(
         update[key] = newFilename;
 
         const fileData = await readFile(file.filepath);
-        await writeFile(`src/uploads/${newFilename}`, fileData);
+
+        // await writeFile(`src/uploads/${newFilename}`, fileData);
+        console.log("Writing object, create");
+        await s3Client.send(
+          new PutObjectCommand({
+            Bucket: bucketName,
+            Key: `uploaded-pdfs/${newFilename}`,
+            Body: fileData,
+          })
+        );
+
         await unlink(file.filepath);
       })
     );
