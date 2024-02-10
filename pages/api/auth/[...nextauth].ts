@@ -1,4 +1,3 @@
-import axios from "axios";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma.lib";
@@ -14,11 +13,6 @@ export const authOptions: NextAuthOptions = {
       },
       // @ts-ignore
       authorize: async (credentials) => {
-        // const res = await axios.post(
-        //   `${process.env.NEXTAUTH_URL}/api/authorize`,
-        //   credentials
-        // );
-
         if (!credentials) return null;
 
         const user = await prisma.user.findUnique({
@@ -31,8 +25,6 @@ export const authOptions: NextAuthOptions = {
           (await argon2.verify(user.password, credentials.password))
         )
           return user;
-
-        // if (res.status === 200 && !!res.data) return res.data;
 
         return null;
       },
