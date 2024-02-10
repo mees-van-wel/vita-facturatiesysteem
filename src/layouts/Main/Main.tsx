@@ -103,7 +103,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           <Anchor href="https://www.hexa-it.nl" target="_blank">
             Hexa-IT
           </Anchor>{" "}
-          - Version 0.2.2
+          - Version 1.0.0
         </Footer>
       }
       header={

@@ -1,6 +1,6 @@
 {
   "name": "vita-facturatiesysteem",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "deploy": "git pull && yarn install --frozen-lockfile --ignore-scripts && yarn prisma generate && yarn build && pm2 reload ecosystem.config.js",
