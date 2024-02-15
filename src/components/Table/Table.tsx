@@ -451,7 +451,7 @@ const FilterInput = ({
         value={filter?.contains as never as string}
         label={tableHeader.label}
         onChange={(e) => {
-          update({ contains: e.target.value });
+          update({ contains: e.target.value, mode: "insensitive" });
         }}
       />
     );
