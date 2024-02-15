@@ -97,7 +97,7 @@ export default async function handler(
               })
             );
           } catch (error) {
-            console.log("File not found while trying to delete old file");
+            console.warn("File not found while trying to delete old file");
           }
 
         const hash = generateRandomHash();
@@ -122,17 +122,17 @@ export default async function handler(
       })
     );
 
-    if (data.fields.handlerId)
+    if (data.fields.handlerId && update.handlerId)
       update.handlerId = parseInt(data.fields.handlerId as string);
 
-    if (data.fields.companyId)
+    if (data.fields.companyId && update.companyId)
       update.companyId = parseInt(data.fields.companyId as string);
 
-    if (update.starterLoan)
+    if (update.starterLoan && data.fields.starterLoan)
       // @ts-ignore
       update.starterLoan = JSON.parse(data.fields.starterLoan);
 
-    if (data.fields.passingDate)
+    if (update.passingDate && data.fields.passingDate)
       update.passingDate = new Date(data.fields.passingDate as string);
 
     if (!data.fields.states)
@@ -146,8 +146,6 @@ export default async function handler(
     // @ts-ignore
     if (data.fields.states?.create.type === ExpenseState.Completed)
       update.completedAt = new Date();
-
-    console.log(update);
 
     const expense = await prisma.expense.update({
       data: update,
@@ -197,8 +195,6 @@ export default async function handler(
 
         const fileData = await readFile(file.filepath);
 
-        // await writeFile(`src/uploads/${newFilename}`, fileData);
-        console.log("Writing object, create");
         await s3Client.send(
           new PutObjectCommand({
             Bucket: bucketName,
@@ -218,7 +214,7 @@ export default async function handler(
       },
     };
 
-    if (data.fields.handlerId) {
+    if (data.fields.handlerId && update.handlerId) {
       delete update.handlerId;
       // @ts-ignore
       update.handler = {
@@ -228,7 +224,7 @@ export default async function handler(
       };
     }
 
-    if (data.fields.companyId) {
+    if (data.fields.companyId && update.companyId) {
       delete update.companyId;
       // @ts-ignore
       update.company = {
@@ -238,11 +234,11 @@ export default async function handler(
       };
     }
 
-    if (update.starterLoan)
+    if (update.starterLoan && data.fields.starterLoan)
       // @ts-ignore
       update.starterLoan = JSON.parse(data.fields.starterLoan);
 
-    if (data.fields.passingDate)
+    if (update.passingDate && data.fields.passingDate)
       update.passingDate = new Date(data.fields.passingDate as string);
 
     const expense = await prisma.expense.create({
