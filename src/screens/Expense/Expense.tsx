@@ -54,6 +54,7 @@ import { MainLayout } from "../../layouts/Main";
 import { query } from "../../lib/query.lib";
 import { getChangedFields } from "../../utilities/getChangedFields.utility";
 import "dayjs/locale/nl";
+import { Address } from "@/components/Address";
 
 export const NEW = "new";
 
@@ -187,6 +188,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const router = useRouter();
   const id = router.query.id as string;
   const [passingDateOptional, setPassingDateOptional] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const createExpense = useMutation({
     mutationFn: (params: FormData) =>
@@ -385,6 +387,8 @@ const Form = ({ expense, users, companies }: FormProps) => {
   );
 
   const submitHandler = async (values: FormValues) => {
+    setLoading(true);
+
     const formValues = expense
       ? getChangedFields(values, initialValues)
       : values;
@@ -434,6 +438,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
             updatedExpense
           );
         },
+        onSettled: () => {
+          setLoading(false);
+        },
       });
     else
       createExpense.mutate(formData, {
@@ -445,6 +452,9 @@ const Form = ({ expense, users, companies }: FormProps) => {
             message: "Ingediend",
             color: "green",
           });
+        },
+        onSettled: () => {
+          setLoading(false);
         },
       });
   };
@@ -524,6 +534,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
           </Link>
           {!isLocked && (
             <Button
+              loading={loading}
               leftIcon={expense ? <IconDeviceFloppy /> : <IconSend />}
               type="submit"
             >
@@ -699,26 +710,23 @@ const Form = ({ expense, users, companies }: FormProps) => {
             {...form.getInputProps("secondCustomerEmail")}
           />
         </Group>
-        <Group grow>
-          <TextInput
-            readOnly={isLocked}
-            withAsterisk={!isLocked}
-            label="Factuuradres"
-            {...form.getInputProps("invoiceAddress")}
+        <Stack spacing={0} my="md">
+          <Title order={4}>Factuuradres</Title>
+          <Address
+            values={{
+              address: form.getInputProps("invoiceAddress").value,
+              postalCode: form.getInputProps("postalCode").value,
+              city: form.getInputProps("city").value,
+            }}
+            onChange={(address, postalCode, city) => {
+              form.getInputProps("invoiceAddress").onChange(address);
+              form.getInputProps("postalCode").onChange(postalCode);
+              form.getInputProps("city").onChange(city);
+            }}
+            disabled={isLocked}
+            required={!isLocked}
           />
-          <TextInput
-            readOnly={isLocked}
-            withAsterisk={!isLocked}
-            label="Postcode"
-            {...form.getInputProps("postalCode")}
-          />
-          <TextInput
-            readOnly={isLocked}
-            withAsterisk={!isLocked}
-            label="Stad"
-            {...form.getInputProps("city")}
-          />
-        </Group>
+        </Stack>
         <Group>
           <DatePickerInput
             readOnly={isLocked}
@@ -768,26 +776,23 @@ const Form = ({ expense, users, companies }: FormProps) => {
             }}
           />
         </Group>
-        <Group grow>
-          <TextInput
-            readOnly={isLocked}
-            withAsterisk={!isLocked}
-            label="Adres object"
-            {...form.getInputProps("objectAddress")}
+        <Stack spacing={0} my="md">
+          <Title order={4}>Adres Object</Title>
+          <Address
+            values={{
+              address: form.getInputProps("objectAddress").value,
+              postalCode: form.getInputProps("objectPostalCode").value,
+              city: form.getInputProps("objectCity").value,
+            }}
+            onChange={(address, postalCode, city) => {
+              form.getInputProps("objectAddress").onChange(address);
+              form.getInputProps("objectPostalCode").onChange(postalCode);
+              form.getInputProps("objectCity").onChange(city);
+            }}
+            disabled={isLocked}
+            required={!isLocked}
           />
-          <TextInput
-            readOnly={isLocked}
-            withAsterisk={!isLocked}
-            label="Postcode object"
-            {...form.getInputProps("objectPostalCode")}
-          />
-          <TextInput
-            readOnly={isLocked}
-            withAsterisk={!isLocked}
-            label="Stad object"
-            {...form.getInputProps("objectCity")}
-          />
-        </Group>
+        </Stack>
         <Group grow>
           <MoneyInput
             readOnly={isLocked}
