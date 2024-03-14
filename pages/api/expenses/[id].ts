@@ -10,17 +10,130 @@ import { readFile, unlink } from "fs/promises";
 import crypto from "crypto";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { bucketName, s3Client } from "@/utilities/s3Client";
-
-const generateRandomHash = () => {
-  const randomBytes = crypto.randomBytes(16);
-  const hash = crypto.createHash("sha256").update(randomBytes).digest("hex");
-  return hash;
-};
+import nodemailer from "nodemailer";
 
 export const config = {
   api: {
     bodyParser: false,
   },
+};
+
+const transporter = nodemailer.createTransport({
+  host: "mail.werkenbijvitahypotheekadvies.nl",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "facturatie@werkenbijvitahypotheekadvies.nl",
+    pass: process.env.SMTP_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+
+const sendMail = async (
+  name: string,
+  email: string,
+  title: string,
+  link: string,
+  content = title
+) => {
+  try {
+    return await transporter.sendMail({
+      from: "Vita Facturatiesysteem <facturatie@werkenbijvitahypotheekadvies.nl>",
+      to: `${name} <${email}>`,
+      subject: title,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f6f6f6;
+    }
+
+    .container {
+      background-color: #ffffff;
+      max-width: 600px;
+      border-top: 2px solid #061d3d;
+      border-left: 2px solid #061d3d;
+      border-right: 2px solid #061d3d;
+      border-radius: 1rem;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .header {
+      padding: 2rem;
+      text-align: center;
+      border-bottom: 2px dashed #061d3d;
+    }
+
+    .body-content {
+      color: #061d3d;
+      font-size: 1.1rem;
+      padding: 2rem;
+    }
+
+    .footer {
+      background-color: #061d3d;
+      color: #ffffff;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img style="width:100%;max-width:250px;"
+        src="https://vitahypotheekadvies.nl/wp-content/uploads/2023/01/vita-hypotheekadvies_logo.svg" />
+    </div>
+    <div class="body-content">
+      <p>${content}</p>
+      <table width="100%" cellspacing="0" cellpadding="0" style="margin-top: 1.5rem;">
+        <tr>
+          <td>
+            <table cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" width="200" height="40" bgcolor="#e10039"
+                  style="border-radius: 0.5rem; color: #ffffff; display: block;">
+                  <a href="${link}"
+                    style="font-size: 16px; font-weight: bold; font-family: Sans-serif; text-decoration: none; color: #ffffff; line-height:40px; width:100%; display:inline-block">
+                    Bekijk verzoek</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="footer">Vita Facturatiesysteem</div>
+  </div>
+</body>
+</html>`,
+    });
+  } catch (error) {
+    console.log("Mail error", error);
+  }
+};
+
+const generateRandomHash = () => {
+  const randomBytes = crypto.randomBytes(16);
+  const hash = crypto.createHash("sha256").update(randomBytes).digest("hex");
+  return hash;
 };
 
 export default async function handler(
@@ -152,6 +265,49 @@ export default async function handler(
       where: { id: parseInt(id as string) },
       include: { states: true },
     });
+
+    (async () => {
+      const handler = await prisma.user.findFirstOrThrow({
+        where: { id: expense.handlerId },
+      });
+
+      const customerName = `${expense.customerInitials} ${
+        expense.customerPrefix
+          ? `${expense.customerPrefix} ${expense.customerLastName}`
+          : expense.customerLastName
+      }`;
+
+      // @ts-ignore
+      if (update.states?.create.type === ExpenseState.Rejected)
+        await sendMail(
+          handler.name,
+          handler.email,
+          `Factuurverzoek "${customerName}" is Afgekeurd`,
+          `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+          // @ts-ignore,
+          `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is afgekeurd om de volgende reden: "${update.states.create.notes}".`
+        );
+
+      // @ts-ignore
+      if (update.states?.create.type === ExpenseState.Approved)
+        await sendMail(
+          handler.name,
+          handler.email,
+          `Factuurverzoek "${customerName}" is Goedgekeurd`,
+          `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+          `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is goedgekeurd.`
+        );
+
+      // @ts-ignore
+      if (update.states?.create.type === ExpenseState.Completed)
+        await sendMail(
+          handler.name,
+          handler.email,
+          `Factuurverzoek "${customerName}" is Uitgevoerd`,
+          `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+          `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is uitgevoerd.`
+        );
+    })();
 
     return res.status(200).json(expense);
   }
