@@ -1,10 +1,13 @@
-import { Anchor, Button, PasswordInput, TextInput, Title } from "@mantine/core";
+import { Button, PasswordInput, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { signIn } from "next-auth/react";
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import { NextPageWithLayout } from "../../../pages/_app";
 import { MainLayout } from "../../layouts/Main";
+import { modals } from "@mantine/modals";
+import { PasswordResetModal } from "@/modals/PasswordResetModal";
+import { useRouter } from "next/router";
 
 interface FormValues {
   email: string;
@@ -12,6 +15,8 @@ interface FormValues {
 }
 
 export const Login: NextPageWithLayout = () => {
+  const { asPath } = useRouter();
+
   const form = useForm<FormValues>({
     initialValues: {
       email: "",
@@ -38,6 +43,27 @@ export const Login: NextPageWithLayout = () => {
       });
   };
 
+  const forgotPasswordHandler = () => {
+    modals.open({
+      title: <Title order={3}>Wachtwoord vergeten</Title>,
+      children: <PasswordResetModal />,
+    });
+  };
+
+  useEffect(() => {
+    if (asPath.includes("reset=success"))
+      showNotification({
+        message: "wachtwoord gewijzigd, u kunt nu inloggen",
+        color: "green",
+      });
+
+    if (asPath.includes("reset=failed"))
+      showNotification({
+        message: "Er is iets misgegaan, probeer het later opnieuw",
+        color: "red",
+      });
+  }, []);
+
   return (
     <div
       style={{
@@ -52,8 +78,10 @@ export const Login: NextPageWithLayout = () => {
       <Title order={2}>Je bent nog niet ingelogd</Title>
       <form onSubmit={form.onSubmit(submitHandler)}>
         <TextInput
+          autoFocus
           withAsterisk
           label="E-mail"
+          type="email"
           {...form.getInputProps("email")}
         />
         <PasswordInput
@@ -64,8 +92,18 @@ export const Login: NextPageWithLayout = () => {
         <Button size="md" my="md" type="submit" fullWidth>
           Inloggen
         </Button>
+        <Button
+          onClick={forgotPasswordHandler}
+          size="sm"
+          compact
+          type="button"
+          role="button"
+          variant="light"
+          fullWidth
+        >
+          Wachtwoord vergeten
+        </Button>
       </form>
-      {/* <Anchor>Wachtwoord vergeten</Anchor> */}
     </div>
   );
 };

@@ -3,7 +3,10 @@ FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm" \
     PATH="$PNPM_HOME:$PATH" \
     NEXT_TELEMETRY_DISABLED=1 \
-    NEXT_SHARP_PATH=/node_modules/sharp
+    NEXT_SHARP_PATH=/node_modules/sharp \
+    NEXT_PUBLIC_HERE_API_KEY=i7x1CajK2fNAoRjooM5lQWgMMqaeHc6Kr2PaF2pinWw \
+    SMTP_PASSWORD=lg^j74H29 \
+    JWT_SECRET=0ERdqGCrcqc0iG2Cr9FRX8ASs7OfgOCp
 
 RUN corepack enable
 

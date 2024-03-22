@@ -12,6 +12,7 @@ import {
   TextInput,
   ColorScheme,
   MultiSelect,
+  Badge,
 } from "@mantine/core";
 import { ReactNode, useMemo, useState } from "react";
 import { TableCount, tableCount } from "../../enums/tableCount.enum";
@@ -29,6 +30,7 @@ import {
   IconPlus,
   IconAdjustments,
   IconAdjustmentsOff,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { FilterExtraType, FilterType } from "../../enums/filterType.enum";
 import { DatePickerInput } from "@mantine/dates";
@@ -120,6 +122,16 @@ const Table = ({
     setSort(clone);
   };
 
+  const isFiltering = useMemo(
+    () => filter && JSON.stringify(initFilter) !== JSON.stringify(filter),
+    [filter]
+  );
+
+  const isSorting = useMemo(
+    () => sort && JSON.stringify(initSort) !== JSON.stringify(sort),
+    [sort]
+  );
+
   return (
     <div>
       <Group mb="md">
@@ -137,6 +149,20 @@ const Table = ({
         >
           Verfijning {showFilter ? "verbergen" : "tonen"}
         </Button>
+        {isFiltering && (
+          <Badge color="orange" size="lg">
+            <Group spacing="xs">
+              <IconAlertTriangle size="1rem" /> Filters staan aan
+            </Group>
+          </Badge>
+        )}
+        {isSorting && (
+          <Badge color="orange" size="lg">
+            <Group spacing="xs">
+              <IconAlertTriangle size="1rem" /> Sortering staat aan
+            </Group>
+          </Badge>
+        )}
       </Group>
       <DataTable
         title={title}
@@ -167,20 +193,18 @@ const Table = ({
             height: "calc(100% - 60px)",
           }}
         >
-          {(filter || sort) &&
-            (JSON.stringify(initFilter) !== JSON.stringify(filter) ||
-              JSON.stringify(initSort) !== JSON.stringify(sort)) && (
-              <Button
-                mb="xs"
-                fullWidth
-                onClick={() => {
-                  setFilter(initFilter);
-                  setSort(initSort);
-                }}
-              >
-                Reset verfijning
-              </Button>
-            )}
+          {(isFiltering || isSorting) && (
+            <Button
+              mb="xs"
+              fullWidth
+              onClick={() => {
+                setFilter(initFilter);
+                setSort(initSort);
+              }}
+            >
+              Reset verfijning
+            </Button>
+          )}
           {headers.map(
             (tableHeader) =>
               tableHeader.filterType && (

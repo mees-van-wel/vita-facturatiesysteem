@@ -31,13 +31,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendMail = async (
-  name: string,
-  email: string,
-  title: string,
-  link: string,
-  content = title
-) => {
+type sendMailProps = {
+  name: string;
+  email: string;
+  title: string;
+  buttonUrl: string;
+  buttonText: string;
+  content: string;
+};
+
+export const sendMail = async ({
+  name,
+  email,
+  title,
+  buttonUrl,
+  buttonText,
+  content = title,
+}: sendMailProps) => {
   try {
     return await transporter.sendMail({
       from: "Vita Facturatiesysteem <facturatie@werkenbijvitahypotheekadvies.nl>",
@@ -110,9 +120,8 @@ const sendMail = async (
               <tr>
                 <td align="center" width="200" height="40" bgcolor="#e10039"
                   style="border-radius: 0.5rem; color: #ffffff; display: block;">
-                  <a href="${link}"
-                    style="font-size: 16px; font-weight: bold; font-family: Sans-serif; text-decoration: none; color: #ffffff; line-height:40px; width:100%; display:inline-block">
-                    Bekijk verzoek</a>
+                  <a href="${buttonUrl}"
+                    style="font-size: 16px; font-weight: bold; font-family: Sans-serif; text-decoration: none; color: #ffffff; line-height:40px; width:100%; display:inline-block">${buttonText}</a>
                 </td>
               </tr>
             </table>
@@ -282,34 +291,37 @@ export default async function handler(
 
       // @ts-ignore
       if (update.states?.create.type === ExpenseState.Rejected)
-        await sendMail(
-          handler.name,
-          handler.email,
-          `Factuurverzoek "${customerName}" is Afgekeurd`,
-          `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+        await sendMail({
+          name: handler.name,
+          email: handler.email,
+          title: `Factuurverzoek "${customerName}" is Afgekeurd`,
+          buttonUrl: `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+          buttonText: "Bekijk verzoek",
           // @ts-ignore,
-          `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is afgekeurd om de volgende reden: "${update.states.create.notes}".`
-        );
+          content: `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is afgekeurd om de volgende reden: "${update.states.create.notes}".`,
+        });
 
       // @ts-ignore
       if (update.states?.create.type === ExpenseState.Approved)
-        await sendMail(
-          handler.name,
-          handler.email,
-          `Factuurverzoek "${customerName}" is Goedgekeurd`,
-          `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
-          `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is goedgekeurd.`
-        );
+        await sendMail({
+          name: handler.name,
+          email: handler.email,
+          title: `Factuurverzoek "${customerName}" is Goedgekeurd`,
+          buttonUrl: `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+          buttonText: "Bekijk verzoek",
+          content: `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is goedgekeurd.`,
+        });
 
       // @ts-ignore
       if (update.states?.create.type === ExpenseState.Completed)
-        await sendMail(
-          handler.name,
-          handler.email,
-          `Factuurverzoek "${customerName}" is Uitgevoerd`,
-          `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
-          `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is uitgevoerd.`
-        );
+        await sendMail({
+          name: handler.name,
+          email: handler.email,
+          title: `Factuurverzoek "${customerName}" is Uitgevoerd`,
+          buttonUrl: `https://portaal.werkenbijvitahypotheekadvies.nl/expenses/${id}`,
+          buttonText: "Bekijk verzoek",
+          content: `Uw factuurverzoek betreffende ${expense.customerSalutation} ${customerName} is uitgevoerd.`,
+        });
     })();
 
     return res.status(200).json(expense);

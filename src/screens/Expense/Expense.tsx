@@ -189,6 +189,7 @@ const Form = ({ expense, users, companies }: FormProps) => {
   const id = router.query.id as string;
   const [passingDateOptional, setPassingDateOptional] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSameAddress, setIsSameAddress] = useState(false);
 
   const createExpense = useMutation({
     mutationFn: (params: FormData) =>
@@ -524,6 +525,21 @@ const Form = ({ expense, users, companies }: FormProps) => {
     );
   };
 
+  useEffect(() => {
+    if (!isSameAddress) return;
+
+    form.setValues({
+      objectAddress: form.values.invoiceAddress,
+      objectPostalCode: form.values.postalCode,
+      objectCity: form.values.city,
+    });
+  }, [
+    isSameAddress,
+    form.values.invoiceAddress,
+    form.values.postalCode,
+    form.values.city,
+  ]);
+
   return (
     <div>
       <form onSubmit={form.onSubmit(submitHandler)}>
@@ -777,21 +793,55 @@ const Form = ({ expense, users, companies }: FormProps) => {
           />
         </Group>
         <Stack spacing={0} my="md">
-          <Title order={4}>Adres Object</Title>
-          <Address
-            values={{
-              address: form.getInputProps("objectAddress").value,
-              postalCode: form.getInputProps("objectPostalCode").value,
-              city: form.getInputProps("objectCity").value,
-            }}
-            onChange={(address, postalCode, city) => {
-              form.getInputProps("objectAddress").onChange(address);
-              form.getInputProps("objectPostalCode").onChange(postalCode);
-              form.getInputProps("objectCity").onChange(city);
-            }}
-            disabled={isLocked}
-            required={!isLocked}
-          />
+          <Group>
+            <Title order={4}>Adres Object</Title>
+            {!isLocked && (
+              <Checkbox
+                label="Hetzelfde als factuuradres"
+                checked={isSameAddress}
+                onChange={(event) =>
+                  setIsSameAddress(event.currentTarget.checked)
+                }
+              />
+            )}
+          </Group>
+          {isSameAddress ? (
+            <Group grow>
+              <TextInput
+                label="Adres"
+                disabled
+                withAsterisk={!isLocked}
+                value={form.values.objectAddress}
+              />
+              <TextInput
+                label="Postcode"
+                disabled
+                withAsterisk={!isLocked}
+                value={form.values.objectPostalCode}
+              />
+              <TextInput
+                label="Stad"
+                disabled
+                withAsterisk={!isLocked}
+                value={form.values.objectCity}
+              />
+            </Group>
+          ) : (
+            <Address
+              values={{
+                address: form.getInputProps("objectAddress").value,
+                postalCode: form.getInputProps("objectPostalCode").value,
+                city: form.getInputProps("objectCity").value,
+              }}
+              onChange={(address, postalCode, city) => {
+                form.getInputProps("objectAddress").onChange(address);
+                form.getInputProps("objectPostalCode").onChange(postalCode);
+                form.getInputProps("objectCity").onChange(city);
+              }}
+              disabled={isLocked}
+              required={!isLocked}
+            />
+          )}
         </Stack>
         <Group grow>
           <MoneyInput
