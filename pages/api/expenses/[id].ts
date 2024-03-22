@@ -215,7 +215,10 @@ export default async function handler(
 
         const hash = generateRandomHash();
         const newFilename = file.originalFilename
-          ? `${slugify(file.originalFilename.split(".pdf")[0])}_${hash}.pdf`
+          ? `${slugify(file.originalFilename.split(".pdf")[0], {
+              lower: true,
+              strict: true,
+            })}_${hash}.pdf`
           : `${hash}.pdf`;
 
         // @ts-ignore
@@ -343,7 +346,13 @@ export default async function handler(
 
         const hash = generateRandomHash();
         const newFilename = file.originalFilename
-          ? `${slugify(file.originalFilename.split(".pdf")[0])}_${hash}.pdf`
+          ? `${
+              (slugify(file.originalFilename.split(".pdf")[0]),
+              {
+                lower: true,
+                strict: true,
+              })
+            }_${hash}.pdf`
           : `${hash}.pdf`;
 
         // @ts-ignore
