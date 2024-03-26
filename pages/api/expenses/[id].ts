@@ -29,6 +29,25 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
+  dkim: {
+    domainName: "werkenbijvitahypotheekadvies.nl",
+    keySelector: "default",
+    privateKey: `-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQCXA0zFrt6Sdsyi/VFr4XXBvzfDRrG0+4w1NNontZtR4j8on7Zw
+I7BhvP0NqJy1JzYO/6YP1TdYVK1aBJ32UsZgPttx/5HuM4meTsnQn0SQWyg0xgui
+YeJxrm3NrcHs2QFS3HlGeGsoppO6hPG53hwqM+RWDQPnJMxwedc0ZUFHzwIDAQAB
+AoGATHRjPgJWtRhoamyN+GxhTgIdnUQBXHuudJGZkVkklcRR7aNOnl+zQQiJpYyk
+KiL7/4P28zUjnBji2xxTTQ6DWBfaGYXFit3dtU2QSOMU7XZDEX8RszyAcPX3toj9
+gLNOgT3ZmMFxaAk3VixnPMcTUsOVD3BMJBhfXk91yYnqRoECQQDIYzGd7wXcjaU4
+/OG8ynhRtxNMvO8HjKx7dwLbhoISnx9VVIuI+EKPuHfmJh8tg+R3volrGoMm+Bc+
+hgInuPZRAkEAwOw4W7fTuoJ50OeEanDUw5jiAVKCezyDkWV9ga6cnFsRZE8tGeXw
+1wIHDweHcenTjdsm3MTJB5YEfmkLeuM0HwJAJSNNJMoRugh+YIttgsG7ftmBOC2j
+1zBZHyC1ZN4O6UiYVAYxPhdUrrIvdnYGPTc+dnrXmQP23pgIJsxLRfVfoQJBAKbl
+tHvkNA8OAURwhWVv5yCvihWKw8bJOyj1m/YskN/TCOC2flYBTrEy19hwswQhPRtj
+k+M5epBNf+W8CmptVBECQBepP4dnqGp3mBzOexgXrFfuVc3GRz1OUQzWuLEnh+zF
+hZZVbkQyq/X10xryhBD02r/EfI0ePIo+4RLm9mfJBOQ=
+-----END RSA PRIVATE KEY-----`,
+  },
 });
 
 type sendMailProps = {
@@ -109,7 +128,7 @@ export const sendMail = async ({
   <div class="container">
     <div class="header">
       <img style="width:100%;max-width:250px;"
-        src="https://vitahypotheekadvies.nl/wp-content/uploads/2023/01/vita-hypotheekadvies_logo.svg" />
+        src="https://vitahypotheekadvies.nl/wp-content/uploads/2023/01/vita-hypotheekadvies_logo.svg" alt="Logo" />
     </div>
     <div class="body-content">
       <p>${content}</p>
