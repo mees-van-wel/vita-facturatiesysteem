@@ -12,13 +12,11 @@ export default async function handler(
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.deactivated)
+    return res.status(401).send("Er bestaat geen account met dit e-mailadres");
 
-  if (
-    user &&
-    !user.deactivated &&
-    (await argon2.verify(user.password, password))
-  )
-    return res.status(200).json(user);
+  const validPassword = await argon2.verify(user.password, password);
+  if (!validPassword) return res.status(401).send("Wachtwoord onjuist");
 
-  return res.status(401).send("Ongeldige inloggegevens");
+  return res.status(200).json(user);
 }

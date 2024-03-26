@@ -31,12 +31,12 @@ export const Login: NextPageWithLayout = () => {
       password,
     });
 
-    if (!res?.ok)
+    if (!res?.ok) {
       showNotification({
-        message: "Gebruiker niet gevonden",
+        message: res?.error,
         color: "red",
       });
-    else
+    } else
       showNotification({
         message: "Ingelogd",
         color: "green",

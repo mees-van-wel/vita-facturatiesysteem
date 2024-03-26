@@ -19,14 +19,16 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        if (
-          user &&
-          !user.deactivated &&
-          (await argon2.verify(user.password, credentials.password))
-        )
-          return user;
+        if (!user || user.deactivated)
+          throw new Error("Er bestaat geen account met dit e-mailadres");
 
-        return null;
+        const validPassword = await argon2.verify(
+          user.password,
+          credentials.password
+        );
+        if (!validPassword) throw new Error("Wachtwoord onjuist");
+
+        return user;
       },
     }),
   ],
