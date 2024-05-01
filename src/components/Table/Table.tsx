@@ -265,7 +265,7 @@ const DataTable = ({
       method: "POST",
       params: {
         page,
-        take: parseInt(take),
+        take: take === TableCount.All ? TableCount.All : parseInt(take),
         filter,
         sort,
       },
@@ -354,12 +354,14 @@ const DataTable = ({
         {data.count ? (
           <div>
             <Group align="end">
-              <Pagination
-                total={Math.round(data.count / parseInt(take)) + 1}
-                value={page}
-                onChange={setPage}
-                withEdges
-              />
+              {take !== TableCount.All && (
+                <Pagination
+                  total={Math.round(data.count / parseInt(take)) + 1}
+                  value={page}
+                  onChange={setPage}
+                  withEdges
+                />
+              )}
               <Select
                 value={take}
                 label="Resultaten weergeven"

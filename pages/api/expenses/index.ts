@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { Role } from "@/enums/role.enum";
 import { prisma } from "@/lib/prisma.lib";
 import { authOptions } from "./../auth/[...nextauth]";
+import { TableCount } from "@/enums/tableCount.enum";
 
 export default async function handler(
   req: NextApiRequest,
@@ -73,10 +74,10 @@ export default async function handler(
   }
 
   const [count, collection] = await prisma.$transaction([
-    prisma.expense.count(),
+    prisma.expense.count({ where }),
     prisma.expense.findMany({
-      skip: (page - 1) * take,
-      take,
+      skip: take === TableCount.All ? undefined : (page - 1) * take,
+      take: take === TableCount.All ? undefined : take,
       include: {
         handler: { select: { name: true } },
         company: { select: { name: true } },

@@ -2,6 +2,7 @@ import { NextApiResponse, NextApiRequest } from "next";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma.lib";
 import { authOptions } from "./../auth/[...nextauth]";
+import { TableCount } from "@/enums/tableCount.enum";
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,8 +33,13 @@ export default async function handler(
   const [count, collection] = await prisma.$transaction([
     prisma.user.count(),
     prisma.user.findMany({
-      skip: page ? (page - 1) * (take ?? 0) : undefined,
-      take,
+      skip:
+        take === TableCount.All
+          ? undefined
+          : page
+          ? (page - 1) * (take ?? 0)
+          : undefined,
+      take: take === TableCount.All ? undefined : take,
       where,
       orderBy: sort
         ? Object.keys(sort).map((key) => {

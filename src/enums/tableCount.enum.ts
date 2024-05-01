@@ -3,6 +3,7 @@ export enum TableCount {
   TwentyFive = "25",
   Fifty = "50",
   Hunderd = "100",
+  All = "Alle",
 }
 
 export const enumToArray = (value: any) =>
